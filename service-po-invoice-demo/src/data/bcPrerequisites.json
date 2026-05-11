@@ -1,0 +1,62 @@
+[
+  {
+    "title": "1. Company Setup & Organizational Data",
+    "items": [
+      "Company created",
+      "Accounting Periods and posting periods open",
+      "Locations / Dimensions configured (as applicable)"
+    ]
+  },
+  {
+    "title": "2. Vendor Setup",
+    "items": [
+      "Vendor created",
+      "Key Fields: Vendor No., Name, Address, VAT Registration No., Vendor Posting Group, Gen. Bus. Posting Group, Payment Terms Code, Bank Account, Blocked status"
+    ]
+  },
+  {
+    "title": "3. Service Master / G/L Setup",
+    "items": [
+      "Service purchasing supported via G/L Account or Item purchase lines",
+      "Key Fields: Type (G/L Account / Item), Description, Unit of Measure, Gen. Prod. Posting Group, VAT Prod. Posting Group"
+    ]
+  },
+  {
+    "title": "4. Dimensions & Posting Setup",
+    "items": [
+      "Dimensions configured (e.g., Department, Cost Center) and enforced as required",
+      "General Posting Setup configured",
+      "VAT Posting Setup configured",
+      "G/L accounts configured for purchase expense, accruals and VAT"
+    ]
+  },
+  {
+    "title": "5. Tax / VAT Setup",
+    "items": [
+      "VAT Product Posting Groups and VAT Business Posting Groups configured",
+      "VAT % and calculation configured"
+    ]
+  },
+  {
+    "title": "6. Purchase Order Setup",
+    "items": [
+      "Purchase Order number series configured",
+      "Posting groups and default dimensions set for purchase documents"
+    ]
+  },
+  {
+    "title": "7. Receipt / Service Acceptance Equivalent",
+    "items": [
+      "Posted Purchase Receipt available for three-way match validation",
+      "Approval workflows configured (if used)"
+    ]
+  },
+  {
+    "title": "8. Recommended Test Data",
+    "items": [
+      "PO with multiple service-related lines",
+      "Posted Purchase Receipt",
+      "Invoice matches Qty Received, Unit Cost and Line Amounts"
+    ]
+  }
+]

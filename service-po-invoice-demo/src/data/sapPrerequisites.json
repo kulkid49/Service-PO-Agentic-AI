@@ -1,0 +1,62 @@
+[
+  {
+    "title": "1. Company Code & Organizational Data",
+    "items": [
+      "Company Code created",
+      "Plant / Purchasing Organization / Purchasing Group assigned",
+      "Fiscal Year Variant and Posting Periods open"
+    ]
+  },
+  {
+    "title": "2. Vendor Master (XK01/BP)",
+    "items": [
+      "Vendor created",
+      "Key Fields: Vendor Number, Name, Address, Tax ID, Reconciliation Account, Payment Terms, Bank Details, Tax No., Blocked status"
+    ]
+  },
+  {
+    "title": "3. Service Master (AC01)",
+    "items": [
+      "Service Number",
+      "Key Fields: Service Category, Description, Base UoM, Material Group, Valuation Class"
+    ]
+  },
+  {
+    "title": "4. Account Assignment & G/L Setup",
+    "items": [
+      "Cost Centers, Internal Orders, WBS etc.",
+      "G/L accounts",
+      "OBYC"
+    ]
+  },
+  {
+    "title": "5. Tax Codes",
+    "items": [
+      "Tax codes configured"
+    ]
+  },
+  {
+    "title": "6. Purchase Order Configuration",
+    "items": [
+      "Item Category D",
+      "LEBRE",
+      "Account Assignment Category"
+    ]
+  },
+  {
+    "title": "7. Service Entry Sheet Configuration",
+    "items": [
+      "Acceptance procedure",
+      "Number ranges"
+    ]
+  },
+  {
+    "title": "8. Recommended Test Data",
+    "items": [
+      "PO with Item Category D",
+      "Multiple service lines",
+      "Account assignment to Cost Center",
+      "Accepted Service Entry Sheet (SES)"
+    ]
+  }
+]
