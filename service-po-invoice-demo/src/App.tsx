@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 
 const PrerequisitesSection = lazy(() => import('./sections/PrerequisitesSection'))
@@ -15,6 +15,35 @@ function Loading() {
 }
 
 export default function App() {
+  const sections = useMemo(() => ['prerequisites', 'step-demo', 'flowchart'], [])
+  const [activeSection, setActiveSection] = useState('prerequisites')
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+        if (visible?.target?.id) {
+          setActiveSection(visible.target.id)
+        }
+      },
+      { threshold: [0.35, 0.6, 0.8], rootMargin: '-64px 0px -20% 0px' },
+    )
+
+    sections.forEach((id) => {
+      const el = document.getElementById(id)
+      if (el) obs.observe(el)
+    })
+    return () => obs.disconnect()
+  }, [sections])
+
+  const navLinks = [
+    { id: 'prerequisites', label: 'Master Data' },
+    { id: 'step-demo', label: 'Step Demo' },
+    { id: 'flowchart', label: 'Interactive Flowchart' },
+  ]
+
   return (
     <div className="min-h-screen bg-white text-gray-800">
       <header className="fixed inset-x-0 top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
@@ -23,9 +52,20 @@ export default function App() {
             Agentic AI Invoice Ops
           </a>
           <div className="hidden items-center gap-5 text-sm text-gray-600 md:flex">
-            <a className="transition hover:text-blue-600" href="#prerequisites">Prerequisites</a>
-            <a className="transition hover:text-blue-600" href="#step-demo">Step Demo</a>
-            <a className="transition hover:text-blue-600" href="#flowchart">Flowchart</a>
+            {navLinks.map((link) => (
+              <a
+                key={link.id}
+                className={`relative pb-1 transition hover:text-blue-600 ${
+                  activeSection === link.id ? 'text-blue-600' : ''
+                }`}
+                href={`#${link.id}`}
+              >
+                {link.label}
+                {activeSection === link.id ? (
+                  <span className="absolute inset-x-0 -bottom-1 h-0.5 rounded-full bg-pink-500" />
+                ) : null}
+              </a>
+            ))}
           </div>
         </nav>
       </header>

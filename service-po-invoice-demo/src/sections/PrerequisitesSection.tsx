@@ -83,7 +83,7 @@ export default function PrerequisitesSection() {
             type="button"
             onClick={() => setTab('sap')}
             className={`relative flex-1 rounded-lg px-4 py-3 text-sm font-semibold transition ${
-              tab === 'sap' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+              tab === 'sap' ? 'bg-blue-50 text-pink-500' : 'text-gray-600 hover:bg-gray-50'
             }`}
           >
             SAP S/4HANA
@@ -93,7 +93,7 @@ export default function PrerequisitesSection() {
             type="button"
             onClick={() => setTab('bc')}
             className={`relative flex-1 rounded-lg px-4 py-3 text-sm font-semibold transition ${
-              tab === 'bc' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+              tab === 'bc' ? 'bg-blue-50 text-pink-500' : 'text-gray-600 hover:bg-gray-50'
             }`}
           >
             Dynamics 365 BC

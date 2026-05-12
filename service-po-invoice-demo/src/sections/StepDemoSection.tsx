@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   Archive,
@@ -18,6 +18,38 @@ import data from '../data/presentationData.json'
 
 type Step = (typeof data.stepDemo)[number]
 
+function ConfidenceArc({ label, value }: { label: string; value: number }) {
+  const radius = 20
+  const circumference = 2 * Math.PI * radius
+  const stroke = circumference - (value / 100) * circumference
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-3 text-center">
+      <svg width="54" height="54" viewBox="0 0 54 54" className="mx-auto">
+        <circle cx="27" cy="27" r={radius} fill="none" stroke="#dbeafe" strokeWidth="6" />
+        <motion.circle
+          cx="27"
+          cy="27"
+          r={radius}
+          fill="none"
+          stroke="#2563EB"
+          strokeWidth="6"
+          strokeLinecap="round"
+          transform="rotate(-90 27 27)"
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: stroke }}
+          transition={{ duration: 0.8 }}
+          strokeDasharray={circumference}
+        />
+        <text x="27" y="31" textAnchor="middle" className="fill-blue-600 text-[9px] font-semibold">
+          {value}%
+        </text>
+      </svg>
+      <p className="mt-2 text-[11px] text-gray-500">{label}</p>
+    </div>
+  )
+}
+
 export default function StepDemoSection() {
   const steps = data.stepDemo as Step[]
   const [active, setActive] = useState(0)
@@ -28,7 +60,7 @@ export default function StepDemoSection() {
     if (!autoPlay) return undefined
     const id = window.setInterval(() => {
       setActive((prev) => (prev + 1) % steps.length)
-    }, 4000)
+    }, 3500)
     return () => window.clearInterval(id)
   }, [autoPlay, steps.length])
 
@@ -38,6 +70,16 @@ export default function StepDemoSection() {
   const icons = [Mail, ScanSearch, ShieldCheck, SearchCheck, Database]
   const StepIcon = icons[active] ?? Mail
 
+  const confidence = useMemo(
+    () => [
+      { label: 'Vendor', value: 96 },
+      { label: 'Invoice', value: 94 },
+      { label: 'PO Number', value: 91 },
+      { label: 'Service Lines', value: 88 },
+    ],
+    [],
+  )
+
   return (
     <section
       id="step-demo"
@@ -46,39 +88,39 @@ export default function StepDemoSection() {
     >
       <div className="mx-auto max-w-7xl">
         <h2 className="text-3xl font-bold text-gray-800 lg:text-4xl">Step-by-Step Visual Demo - Agentic AI Operation</h2>
-        <p className="mt-3 text-gray-600">Interactive walkthrough from vendor email ingestion to final posting.</p>
+        <p className="mt-3 text-gray-600">Ideal success-path walkthrough from email receipt to posted invoice completion.</p>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-[340px_1fr]">
+        <div className="mt-10 grid gap-6 lg:grid-cols-5">
           <motion.aside
             key={current.id}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="rounded-2xl border border-blue-100 bg-white p-6"
+            className="rounded-2xl border border-blue-100 bg-white p-6 lg:col-span-2"
           >
-            <div className="inline-flex rounded-xl bg-pink-50 p-3 text-pink-500">
-              <StepIcon size={24} />
+            <div className="inline-flex rounded-2xl bg-gradient-to-br from-blue-50 to-pink-50 p-5 text-pink-500">
+              <StepIcon size={40} />
             </div>
-            <h3 className="mt-4 text-xl font-bold text-blue-600">{current.title}</h3>
+            <h3 className="mt-4 text-2xl font-bold text-blue-600">{current.title}</h3>
             <p className="mt-2 text-sm text-gray-600">{current.agent}</p>
 
             <div className="mt-6 space-y-3 text-sm text-gray-600">
               <p className="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2">
                 <Mail size={14} className="text-blue-600" />
-                From: {mock.vendorEmail}
+                From: vendor@company.com
               </p>
               <p className="inline-flex items-center gap-2 rounded-lg bg-pink-50 px-3 py-2">
                 <Sparkles size={14} className="text-pink-500" />
-                {mock.globalInvoiceId}
+                Global Service Invoice ID: {mock.globalInvoiceId}
               </p>
             </div>
           </motion.aside>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-6">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 lg:col-span-3">
             <AnimatePresence mode="wait">
               <motion.div key={current.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 {active === 0 ? (
                   <div className="space-y-4 text-sm text-gray-600">
-                    <motion.div className="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2">
+                    <motion.div className="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2" animate={{ x: [50, 0] }}>
                       <Mail size={16} className="text-blue-600" />
                       Subject: Service Invoice #{mock.invoiceNumber}
                     </motion.div>
@@ -94,7 +136,7 @@ export default function StepDemoSection() {
                 {active === 1 ? (
                   <div className="space-y-4">
                     <motion.div
-                      className="relative overflow-hidden rounded-xl border border-gray-200 p-4 text-sm"
+                      className="relative overflow-hidden rounded-xl border border-gray-200 bg-white p-4 text-sm"
                       initial={{ opacity: 0.6 }}
                       animate={{ opacity: 1 }}
                     >
@@ -113,13 +155,14 @@ export default function StepDemoSection() {
                       <div>  "SESNumber": "{mock.sesNumber}"</div>
                       <div>{'}'}</div>
                     </div>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      {['Vendor Name: 96%', 'Invoice No.: 93%', 'Tax ID: 72%'].map((item) => (
-                        <span key={item} className={`rounded-full px-3 py-1 ${item.includes('72') ? 'bg-pink-100 text-pink-600' : 'bg-blue-100 text-blue-600'}`}>
-                          {item}
-                        </span>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                      {confidence.map((item) => (
+                        <ConfidenceArc key={item.label} label={item.label} value={item.value} />
                       ))}
                     </div>
+                    <p className="inline-flex items-center gap-2 rounded-lg bg-pink-50 px-3 py-2 text-pink-600">
+                      <CheckCircle2 size={15} /> Extraction successful
+                    </p>
                   </div>
                 ) : null}
 
@@ -127,8 +170,9 @@ export default function StepDemoSection() {
                   <div className="space-y-3 text-sm text-gray-600">
                     <p className="rounded-lg bg-blue-50 px-3 py-2">Tax Code normalized: VAT 12% → UZ_VAT12</p>
                     <p className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2"><CheckCircle2 size={16} className="text-blue-600" /> Vendor Validation</p>
-                    <p className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2"><ShieldCheck size={16} className="text-blue-600" /> Regulatory / Policy Compliance</p>
-                    <p className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2"><FileJson size={16} className="text-blue-600" /> Duplicate Check (SAP + BC)</p>
+                    <p className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2"><ShieldCheck size={16} className="text-blue-600" /> Tax ID Match</p>
+                    <p className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2"><FileJson size={16} className="text-blue-600" /> PO Valid</p>
+                    <p className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2"><CheckCircle2 size={16} className="text-blue-600" /> No Duplicate Found</p>
                   </div>
                 ) : null}
 
@@ -147,20 +191,24 @@ export default function StepDemoSection() {
                         <div key={h} className="rounded-lg border border-gray-200 bg-white p-3 text-gray-600">{h}</div>
                       ))}
                     </div>
-                    <p className="text-gray-600">Tolerance within configured range. Auto-approve.</p>
+                    <p className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-blue-600">Tolerance within safe zone</p>
+                    <p className="inline-flex rounded-full bg-pink-50 px-3 py-1 text-pink-600">Auto-approval stamp applied</p>
                   </div>
                 ) : null}
 
                 {active === 4 ? (
                   <div className="space-y-3 text-sm text-gray-600">
                     <p>Final enrichment: Cost Center/WBS resolved.</p>
-                    <p>{mode === 'sap' ? 'Posting via MIRO background flow.' : 'Posting via BC Purchase Invoice API.'}</p>
+                    <p>{mode === 'sap' ? 'MIRO Background Posting dialog executed.' : 'Create Purchase Invoice dialog executed.'}</p>
                     <motion.p initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="inline-flex rounded-full bg-pink-100 px-3 py-1 font-semibold text-pink-600">
-                      Invoice Doc No. 5100000123
+                      Posted Invoice 5100000123
                     </motion.p>
                     <p className="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-blue-600">
                       <Check size={15} /> Global Service Invoice ID Completed
                     </p>
+                    <motion.p animate={{ x: [0, 12, 0] }} className="inline-flex items-center gap-2 rounded-lg bg-pink-50 px-3 py-2 text-pink-600">
+                      <Mail size={14} /> Confirmation email dispatched
+                    </motion.p>
                   </div>
                 ) : null}
               </motion.div>
@@ -192,7 +240,7 @@ export default function StepDemoSection() {
             onClick={() => setAutoPlay((v) => !v)}
             className={`rounded-lg px-4 py-2 text-sm ${autoPlay ? 'bg-pink-500 text-white' : 'bg-pink-50 text-pink-600'}`}
           >
-            {autoPlay ? 'Stop Auto-Play' : 'Auto-Play (4s)'}
+            {autoPlay ? 'Stop Auto-Play' : 'Auto-Play (3.5s)'}
           </button>
         </div>
 
@@ -207,14 +255,14 @@ export default function StepDemoSection() {
                 onClick={() => setActive(idx)}
                 className={`rounded-xl border px-3 py-3 text-left text-sm transition ${
                   activeStep
-                    ? 'border-blue-600 bg-blue-50 text-blue-600'
+                    ? 'border-blue-600 bg-blue-50 text-blue-600 ring-2 ring-pink-200'
                     : completed
                       ? 'border-pink-200 bg-pink-50 text-pink-600'
                       : 'border-gray-200 bg-white text-gray-500'
                 }`}
               >
                 <div className="mb-1 flex items-center gap-2">
-                  <span className="grid h-6 w-6 place-items-center rounded-full border text-xs">
+                  <span className={`grid h-6 w-6 place-items-center rounded-full border text-xs ${activeStep ? 'border-blue-600' : ''}`}>
                     {completed ? <Check size={12} /> : step.id}
                   </span>
                   {step.shortLabel}

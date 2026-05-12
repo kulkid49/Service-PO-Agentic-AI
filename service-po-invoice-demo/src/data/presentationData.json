@@ -152,7 +152,7 @@
   },
   "mockInvoiceData": {
     "vendor": "TechServ Solutions",
-    "vendorEmail": "vendor@example.com",
+    "vendorEmail": "vendor@company.com",
     "invoiceNumber": "INV-20260511",
     "invoiceDate": "2026-05-11",
     "poNumber": "4500012345",
@@ -256,5 +256,39 @@
       "description": "Posted invoice document and audit update",
       "tools": "Ledger + audit log"
     }
-  ]
+  ],
+  "flowExplanations": {
+    "trigger": [
+      "The Orchestrator Agent continuously monitors a dedicated inbox using Microsoft Graph API.",
+      "When a new email with a service invoice attachment arrives, it captures metadata and creates a unique Global Service Invoice ID for tracking."
+    ],
+    "orchestrator": [
+      "The Orchestrator generates the Global ID, archives the email, and forwards it to the Extractor Agent.",
+      "It acts as the central coordinator for the entire process."
+    ],
+    "extractor": [
+      "Applies OCR and AI Document Intelligence to extract Vendor, Invoice No., PO Number, service line items, tax, and totals.",
+      "Extraction runs with confidence scoring before moving ahead."
+    ],
+    "translator": [
+      "Normalizes extracted data including language, units, and currency conversions.",
+      "Standardizes tax codes to ERP-compliant values (for example: VAT 12% to UZ_VAT12)."
+    ],
+    "compliance": [
+      "Performs layered validations: vendor active status, tax ID match, PO validity, and duplicate invoice checks.",
+      "All checks must pass before proceeding."
+    ],
+    "validation": [
+      "Executes three-way match: Invoice vs Accepted Service Entry Sheet (or Posted Receipt in BC) vs Purchase Order.",
+      "Applies price and quantity tolerances and auto-approves when within limits."
+    ],
+    "posting": [
+      "Enriches account assignments and posts in background mode (BAPI_INCOMINGINVOICE_CREATE for SAP or Purchase Invoice API for BC).",
+      "Updates PO history and vendor ledger entries."
+    ],
+    "completion": [
+      "Global Service Invoice ID is marked as completed.",
+      "Confirmation notifications can be sent and payment proposal is triggered based on due date."
+    ]
+  }
 }

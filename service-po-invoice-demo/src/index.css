@@ -39,3 +39,16 @@ body {
     opacity: 0.85;
   }
 }
+
+@keyframes flow-draw {
+  0% {
+    stroke-dashoffset: 28;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.flow-dash {
+  animation: flow-draw 1.1s linear infinite;
+}
