@@ -63,7 +63,7 @@ export default function App() {
       <header className="fixed inset-x-0 top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
         <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-6 lg:px-12">
           <a href="#top" className="text-lg font-bold text-blue-600">
-            Agentic AI Invoice Ops
+            Service PO based Invoice Agentic Ops
           </a>
           <div className="hidden items-center gap-5 text-sm text-gray-600 md:flex">
             {navLinks.map((link) => (
