@@ -222,6 +222,7 @@
       "stepperLabel": "Email",
       "title": "Email Receipt & Initial Ingestion",
       "leftVisual": "email",
+      "stageBreaks": [2, 4, 5],
       "bullets": [
         "The Orchestrator Agent continuously monitors the dedicated inbox using Microsoft Graph API / Outlook Connector / IMAP.",
         "New email with attachment(s) is detected.",
@@ -235,6 +236,7 @@
       "stepperLabel": "Extraction",
       "title": "Extraction (Service PO Extractor Agent)",
       "leftVisual": "extraction",
+      "stageBreaks": [5, 14, 18, 22],
       "bullets": [
         "Agent Activation: Extractor Agent receives the raw email and attachment.",
         "Document Processing:",
@@ -265,6 +267,7 @@
       "stepperLabel": "Compliance",
       "title": "Compliance Checks (Service Compliance Checker Agent + Service Master Data Agent)",
       "leftVisual": "compliance",
+      "stageBreaks": [5, 17, 22],
       "bullets": [
         "Translator Agent first normalizes the data:",
         "Language translation",
@@ -295,6 +298,7 @@
       "stepperLabel": "Validation",
       "title": "Validation (Service Validation Agent)",
       "leftVisual": "validation",
+      "stageBreaks": [3, 13, 20],
       "bullets": [
         "This is the Three-Way Match stage specifically for Service POs.",
         "Validation Agent receives normalized payload.",
@@ -323,6 +327,7 @@
       "stepperLabel": "Posting",
       "title": "Posting (Service Posting Agent)",
       "leftVisual": "posting",
+      "stageBreaks": [5, 14, 19, 24],
       "bullets": [
         "Only clean, validated invoices reach this stage.",
         "Posting Agent receives approved payload.",

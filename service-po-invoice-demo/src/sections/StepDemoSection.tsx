@@ -69,12 +69,14 @@ function isHeaderLine(line: string) {
 
 function LeftVisual({
   step,
-  subIndex,
+  stageIndex,
+  stageCount,
   mode,
   globalInvoiceId,
 }: {
   step: FullStep
-  subIndex: number
+  stageIndex: number
+  stageCount: number
   mode: 'sap' | 'bc'
   globalInvoiceId: string
 }) {
@@ -107,6 +109,8 @@ function LeftVisual({
   }
 
   if (step.leftVisual === 'email') {
+    const showId = stageIndex >= 1
+    const archived = stageIndex >= 2
     return (
       <div className="relative h-56 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white">
         <div className="absolute left-8 top-8 rounded-2xl border border-gray-200 bg-white p-4">
@@ -115,7 +119,7 @@ function LeftVisual({
             <motion.span
               className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-pink-500 text-[10px] font-semibold text-white"
               initial={{ scale: 0 }}
-              animate={{ scale: subIndex >= 2 ? 1 : 0 }}
+              animate={{ scale: 1 }}
               transition={{ duration: 0.25 }}
             >
               1
@@ -135,7 +139,7 @@ function LeftVisual({
         </div>
         <motion.div
           className="absolute left-16 top-[112px]"
-          animate={subIndex >= 5 ? { x: 310, y: 78, opacity: [1, 1, 0.7] } : { x: 0, y: 0, opacity: 1 }}
+          animate={archived ? { x: 310, y: 78, opacity: [1, 1, 0.7] } : { x: 0, y: 0, opacity: 1 }}
           transition={{ duration: 0.9, ease: 'easeInOut' }}
         >
           <Mail className="text-blue-600" size={18} />
@@ -143,7 +147,7 @@ function LeftVisual({
         <motion.div
           className="absolute left-8 bottom-8 inline-flex items-center gap-2 rounded-full bg-pink-100 px-3 py-1 text-xs font-semibold text-pink-600"
           initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: subIndex >= 4 ? 1 : 0, y: subIndex >= 4 ? 0 : 8 }}
+          animate={{ opacity: showId ? 1 : 0, y: showId ? 0 : 8 }}
         >
           <Sparkles size={14} />
           {globalInvoiceId}
@@ -153,7 +157,7 @@ function LeftVisual({
   }
 
   if (step.leftVisual === 'extraction') {
-    const done = subIndex >= step.bullets.length
+    const done = stageIndex === stageCount - 1
     return (
       <div className="relative h-56 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white">
         <div className="absolute left-8 top-8 h-36 w-32 rounded-xl border border-gray-200 bg-white" />
@@ -200,7 +204,7 @@ function LeftVisual({
       'PO Valid',
       'No Duplicate',
     ]
-    const count = Math.min(layers.length, Math.max(0, subIndex - 5))
+    const count = stageIndex === 0 ? 0 : stageIndex === 1 ? 2 : 4
     return (
       <div className="relative h-56 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white">
         <div className="absolute left-8 top-8 inline-flex items-center gap-2 rounded-2xl bg-white p-4 shadow-sm">
@@ -231,7 +235,7 @@ function LeftVisual({
   }
 
   if (step.leftVisual === 'validation') {
-    const safe = subIndex >= 18
+    const safe = stageIndex === stageCount - 1
     return (
       <div className="relative h-56 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white">
         <div className="absolute left-8 top-8 right-8 grid grid-cols-3 gap-3 text-[11px] text-gray-600">
@@ -270,7 +274,7 @@ function LeftVisual({
     )
   }
 
-  const complete = subIndex >= step.bullets.length
+  const complete = stageIndex === stageCount - 1
   return (
     <div className="relative h-56 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white">
       <div className="absolute left-8 top-8 inline-flex items-center gap-2 rounded-2xl bg-white p-4 shadow-sm">
@@ -309,50 +313,56 @@ function LeftVisual({
 export default function StepDemoSection() {
   const steps = data.stepDemoFull as FullStep[]
   const [active, setActive] = useState(0)
-  const [subIndex, setSubIndex] = useState(1)
+  const [stageIndex, setStageIndex] = useState(0)
   const [autoPlay, setAutoPlay] = useState(false)
   const [mode, setMode] = useState<'sap' | 'bc'>('sap')
+
+  const current = steps[active]
+  const stageBreaks = (current as any).stageBreaks as number[] | undefined
+  const stageStops = stageBreaks && stageBreaks.length ? stageBreaks : [current.bullets.length]
+  const stageCount = stageStops.length
+  const visibleCount = stageStops[Math.min(stageIndex, stageCount - 1)] ?? current.bullets.length
 
   useEffect(() => {
     if (!autoPlay) return undefined
     const id = window.setInterval(() => {
-      setSubIndex((prev) => {
-        const step = steps[active]
-        if (!step) return prev
+      if (active === 0) {
+        setActive(1)
+        setStageIndex(0)
+        return
+      }
 
-        if (active === 0) {
-          setActive(1)
-          return 1
-        }
+      if (stageIndex < stageCount - 1) {
+        setStageIndex((v) => Math.min(v + 1, stageCount - 1))
+        return
+      }
 
-        if (prev < step.bullets.length) return prev + 1
-        if (active < steps.length - 1) {
-          setActive((s) => s + 1)
-          return 1
-        }
+      if (active < steps.length - 1) {
+        setActive((v) => v + 1)
+        setStageIndex(0)
+        return
+      }
 
-        setAutoPlay(false)
-        return prev
-      })
+      setAutoPlay(false)
     }, 3500)
     return () => window.clearInterval(id)
-  }, [autoPlay, active, steps])
+  }, [autoPlay, active, stageIndex, stageCount, steps.length])
 
   const mock = data.mockInvoiceData
-  const current = steps[active]
-  const visibleBullets = useMemo(() => current.bullets.slice(0, Math.min(subIndex, current.bullets.length)), [current, subIndex])
 
   useEffect(() => {
-    setSubIndex(1)
+    setStageIndex(0)
   }, [active])
+
+  const visibleBullets = useMemo(() => current.bullets.slice(0, Math.min(visibleCount, current.bullets.length)), [current, visibleCount])
 
   const onNext = () => {
     if (active === 0) {
       setActive(1)
       return
     }
-    if (subIndex < current.bullets.length) {
-      setSubIndex((v) => v + 1)
+    if (stageIndex < stageCount - 1) {
+      setStageIndex((v) => Math.min(v + 1, stageCount - 1))
       return
     }
     if (active < steps.length - 1) {
@@ -363,17 +373,18 @@ export default function StepDemoSection() {
 
   const onPrev = () => {
     if (active === 0) return
-    if (subIndex > 1) {
-      setSubIndex((v) => v - 1)
+    if (stageIndex > 0) {
+      setStageIndex((v) => Math.max(0, v - 1))
       return
     }
-    if (active > 1) {
+    if (active > 0) {
       const prevStep = steps[active - 1]
+      const prevBreaks = (prevStep as any).stageBreaks as number[] | undefined
+      const prevStops = prevBreaks && prevBreaks.length ? prevBreaks : [prevStep.bullets.length]
       setActive((v) => v - 1)
-      setSubIndex(prevStep.bullets.length)
+      setStageIndex(prevStops.length - 1)
       return
     }
-    setActive(0)
   }
 
   return (
@@ -393,7 +404,7 @@ export default function StepDemoSection() {
             animate={{ opacity: 1, x: 0 }}
             className="rounded-2xl border border-blue-100 bg-white p-6 lg:col-span-2"
           >
-            <LeftVisual step={current} subIndex={subIndex} mode={mode} globalInvoiceId={mock.globalInvoiceId} />
+            <LeftVisual step={current} stageIndex={stageIndex} stageCount={stageCount} mode={mode} globalInvoiceId={mock.globalInvoiceId} />
             <h3 className="mt-5 text-xl font-bold text-blue-600">{current.title}</h3>
             <p className="mt-2 text-sm text-gray-600">Ideal success path demonstration</p>
 
@@ -475,7 +486,7 @@ export default function StepDemoSection() {
             onClick={onNext}
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white"
             aria-label="Next step"
-            disabled={active === steps.length - 1 && subIndex >= current.bullets.length}
+            disabled={active === steps.length - 1 && stageIndex >= stageCount - 1}
           >
             Next
             <ChevronRight size={16} />
@@ -497,7 +508,12 @@ export default function StepDemoSection() {
               <button
                 type="button"
                 key={step.id}
-                onClick={() => setActive(idx)}
+                onClick={() => {
+                  setActive(idx)
+                  const breaks = (step as any).stageBreaks as number[] | undefined
+                  const stops = breaks && breaks.length ? breaks : [step.bullets.length]
+                  setStageIndex(idx === 0 ? 0 : stops.length - 1)
+                }}
                 className={`rounded-xl border px-3 py-3 text-left text-sm transition ${
                   activeStep
                     ? 'border-blue-600 bg-blue-50 text-blue-600 ring-2 ring-pink-200'
