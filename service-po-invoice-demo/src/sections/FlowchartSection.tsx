@@ -29,7 +29,10 @@ const iconMap: Record<string, ComponentType<{ size?: number; className?: string 
 
 export default function FlowchartSection() {
   const nodes = data.flowNodes
-  const explanations = data.flowExplanations
+  const cards = data.flowExplanationCards as Record<
+    string,
+    { label: string; title: string; bullets: string[] }
+  >
   const [current, setCurrent] = useState(0)
   const scrollerRef = useRef<HTMLDivElement | null>(null)
 
@@ -56,7 +59,7 @@ export default function FlowchartSection() {
   }, [current, nodePositions])
 
   const activeNode = nodes[current]
-  const activeText = explanations[activeNode.id as keyof typeof explanations]
+  const activeCard = cards[activeNode.id] ?? { label: activeNode.title, title: activeNode.title, bullets: [] }
 
   const pathFor = (idx: number) => {
     const p1 = nodePositions[idx]
@@ -179,10 +182,12 @@ export default function FlowchartSection() {
                 exit={{ opacity: 0, y: -10 }}
                 className="rounded-2xl border border-blue-100 bg-gradient-to-b from-blue-50 to-white p-6"
               >
-                <p className="text-sm font-semibold text-pink-500">Step {current + 1}</p>
-                <h3 className="mt-1 text-2xl font-bold text-blue-600">{activeNode.title}</h3>
+                <p className="text-sm font-semibold text-pink-500">
+                  Step {current + 1} <span className="text-gray-400">•</span> {activeCard.label}
+                </p>
+                <h3 className="mt-1 text-2xl font-bold text-blue-600">{activeCard.title}</h3>
                 <div className="mt-4 space-y-2">
-                  {activeText.map((line, idx) => (
+                  {activeCard.bullets.map((line, idx) => (
                     <motion.p
                       key={line}
                       initial={{ opacity: 0, x: 8 }}
