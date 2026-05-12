@@ -1,17 +1,14 @@
-import { useEffect, useMemo, useState, type ComponentType } from 'react'
+import { useMemo, useState, type ComponentType } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   Bot,
   Check,
-  CheckCheck,
   ChevronLeft,
   ChevronRight,
   Database,
   Flag,
   Languages,
   Mail,
-  Pause,
-  Play,
   ScanSearch,
   Settings2,
   ShieldCheck,
@@ -33,8 +30,6 @@ const iconMap: Record<string, ComponentType<{ size?: number; className?: string 
 export default function FlowchartSection() {
   const nodes = data.flowNodes
   const explanations = data.flowExplanations
-  const [started, setStarted] = useState(false)
-  const [running, setRunning] = useState(false)
   const [current, setCurrent] = useState(0)
 
   const nodePositions = useMemo(
@@ -45,16 +40,6 @@ export default function FlowchartSection() {
       })),
     [nodes],
   )
-
-  useEffect(() => {
-    if (!started || !running) return undefined
-    if (current >= nodes.length - 1) {
-      setRunning(false)
-      return undefined
-    }
-    const id = window.setTimeout(() => setCurrent((v) => Math.min(v + 1, nodes.length - 1)), 1700)
-    return () => window.clearTimeout(id)
-  }, [started, running, current, nodes.length])
 
   const activeNode = nodes[current]
   const activeText = explanations[activeNode.id as keyof typeof explanations]
@@ -73,21 +58,28 @@ export default function FlowchartSection() {
         <h2 className="text-3xl font-bold text-gray-800 lg:text-4xl">Vertical Linear Flowchart - Entire Process Background</h2>
         <p className="mt-3 max-w-3xl text-gray-600">Interactive flow view showing how each agent executes in sequence from trigger to completion.</p>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-2">
-          <div>
-            <button
-              type="button"
-              onClick={() => {
-                setStarted(true)
-                setRunning(true)
-                setCurrent(0)
-              }}
-              disabled={started}
-              className="mb-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {running ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <Play size={15} />}
-              Start Process
-            </button>
+        <div className="mt-10 grid gap-6 lg:grid-cols-[3fr_2fr]">
+          <div className="min-w-0">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrent((v) => Math.max(0, v - 1))}
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
+                aria-label="Previous step"
+              >
+                <ChevronLeft size={14} />
+                Previous Step
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrent((v) => Math.min(nodes.length - 1, v + 1))}
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm text-white"
+                aria-label="Next step"
+              >
+                Next Step
+                <ChevronRight size={14} />
+              </button>
+            </div>
 
             <div className="relative rounded-2xl border border-gray-200 bg-white p-4">
               <div className="relative h-[760px] w-full overflow-hidden rounded-xl bg-gradient-to-b from-blue-50 to-white">
@@ -162,43 +154,9 @@ export default function FlowchartSection() {
                 />
               </div>
             </div>
-
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setRunning(false)
-                  setCurrent((v) => Math.max(0, v - 1))
-                }}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
-              >
-                <ChevronLeft size={14} />
-                Previous Step
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setRunning(false)
-                  setCurrent((v) => Math.min(nodes.length - 1, v + 1))
-                }}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
-              >
-                Next Step
-                <ChevronRight size={14} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setRunning((v) => !v)}
-                disabled={!started}
-                className="inline-flex items-center gap-2 rounded-lg bg-pink-500 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {running ? <Pause size={14} /> : <Play size={14} />}
-                {running ? 'Pause' : 'Resume'}
-              </button>
-            </div>
           </div>
 
-          <div>
+          <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
             <AnimatePresence mode="wait">
               <motion.article
                 key={activeNode.id}

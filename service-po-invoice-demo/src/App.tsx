@@ -19,23 +19,37 @@ export default function App() {
   const [activeSection, setActiveSection] = useState('prerequisites')
 
   useEffect(() => {
-    const obs = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
-        if (visible?.target?.id) {
-          setActiveSection(visible.target.id)
-        }
-      },
-      { threshold: [0.35, 0.6, 0.8], rootMargin: '-64px 0px -20% 0px' },
-    )
+    const headerOffset = 76
+    let raf = 0
 
-    sections.forEach((id) => {
-      const el = document.getElementById(id)
-      if (el) obs.observe(el)
-    })
-    return () => obs.disconnect()
+    const computeActive = () => {
+      const y = window.scrollY + headerOffset
+      let best = sections[0] ?? 'prerequisites'
+      for (const id of sections) {
+        const el = document.getElementById(id)
+        if (!el) continue
+        const top = el.getBoundingClientRect().top + window.scrollY
+        if (top <= y) best = id
+      }
+      setActiveSection(best)
+    }
+
+    const onScroll = () => {
+      if (raf) return
+      raf = window.requestAnimationFrame(() => {
+        raf = 0
+        computeActive()
+      })
+    }
+
+    computeActive()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      if (raf) window.cancelAnimationFrame(raf)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
   }, [sections])
 
   const navLinks = [
@@ -59,6 +73,12 @@ export default function App() {
                   activeSection === link.id ? 'text-blue-600' : ''
                 }`}
                 href={`#${link.id}`}
+                onClick={(e) => {
+                  e.preventDefault()
+                  setActiveSection(link.id)
+                  document.getElementById(link.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  window.history.replaceState(null, '', `#${link.id}`)
+                }}
               >
                 {link.label}
                 {activeSection === link.id ? (
@@ -70,7 +90,7 @@ export default function App() {
         </nav>
       </header>
 
-      <main id="top" className="snap-y snap-mandatory pt-16">
+      <main id="top" className="pt-16">
         <Suspense fallback={<Loading />}>
           <PrerequisitesSection />
         </Suspense>
