@@ -1,18 +1,24 @@
 # Agentic AI Ops — Service PO Invoice Posting (Corporate Demo)
 
-React + Vite enterprise dashboard demo that presents:
+React + Vite enterprise presentation demo built as a single-page app with three full-height sections:
 
-- **/prerequisites**: Master Data & Field-Level Prerequisites (SAP S/4HANA + Microsoft Dynamics 365 Business Central)
-- **/agentic-flow**: Step-by-step visual demo of the end-to-end Agentic AI operation for Service PO-based invoice posting
+- **Section 1**: Master Data & Field-Level Prerequisites (SAP S/4HANA and Dynamics 365 BC tabs)
+- **Section 2**: Interactive step-by-step Agentic AI operation walkthrough
+- **Section 3**: Vertical linear flowchart of end-to-end orchestration + exception branch
 
 ## Tech Stack
 
 - Vite + React + TypeScript
 - Tailwind CSS (utility-first styling)
 - Framer Motion (animations, transitions, staggered reveals)
-- Custom Typewriter component (character-by-character typing with blinking cursor)
 - lucide-react (icons)
-- react-router-dom (client-side routing)
+- Local JSON-driven mock data
+
+## Mock Data
+
+All UI content and process examples are driven by:
+
+- `src/data/presentationData.json`
 
 ## Run Locally
 

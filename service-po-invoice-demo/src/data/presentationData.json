@@ -1,0 +1,271 @@
+{
+  "sapPrerequisites": [
+    {
+      "title": "Company Code",
+      "description": "Core organizational entity and posting control must be active before automated service invoice handling.",
+      "keyFields": [
+        "Company Code",
+        "Plant",
+        "Purchasing Organization",
+        "Purchasing Group",
+        "Fiscal Year Variant",
+        "Open Posting Periods"
+      ]
+    },
+    {
+      "title": "Vendor Master",
+      "description": "Vendor account must be complete and compliant for service PO invoice matching and posting.",
+      "keyFields": [
+        "Vendor Number",
+        "Name",
+        "Address",
+        "Tax ID (STCD1/STCD2)",
+        "Reconciliation Account",
+        "Payment Terms (ZTERM)",
+        "Bank Details",
+        "Tax Number/VAT Registration",
+        "Blocked Status = Not Blocked"
+      ]
+    },
+    {
+      "title": "Service Master",
+      "description": "Service definitions are required to interpret service line semantics and valuation correctly.",
+      "keyFields": [
+        "Service Number",
+        "Service Category",
+        "Description",
+        "Base Unit of Measure",
+        "Material Group",
+        "Valuation Class"
+      ]
+    },
+    {
+      "title": "Account Assignment",
+      "description": "Financial assignment objects ensure extracted services post to valid controlling structures.",
+      "keyFields": [
+        "Cost Center",
+        "Internal Order",
+        "WBS Element",
+        "G/L Account Mapping",
+        "OBYC Setup"
+      ]
+    },
+    {
+      "title": "Tax Codes",
+      "description": "Tax determination must be configured for service procurement and regulatory compliance.",
+      "keyFields": [
+        "Input Tax Code",
+        "Withholding Tax Type",
+        "VAT Rate Mapping",
+        "Jurisdiction Rules"
+      ]
+    },
+    {
+      "title": "PO Configuration for Services",
+      "description": "Service-specific PO behavior is required for extraction and three-way match logic.",
+      "keyFields": [
+        "Item Category D",
+        "Account Assignment Category",
+        "Service Entry Sheet (SES) Required",
+        "Acceptance Procedure",
+        "Number Ranges"
+      ]
+    }
+  ],
+  "bcPrerequisites": [
+    {
+      "title": "Company Setup",
+      "description": "Business Central company context, accounting periods, and base posting controls must be configured.",
+      "keyFields": [
+        "Company Information",
+        "Accounting Periods",
+        "Location Setup",
+        "Dimension Defaults",
+        "General Ledger Setup"
+      ]
+    },
+    {
+      "title": "Vendor Card",
+      "description": "Vendor profile must be complete and unblocked for compliant automation.",
+      "keyFields": [
+        "Vendor No.",
+        "Name",
+        "Address",
+        "VAT Registration No.",
+        "Vendor Posting Group",
+        "Gen. Bus. Posting Group",
+        "Payment Terms Code",
+        "Bank Account",
+        "Blocked = No"
+      ]
+    },
+    {
+      "title": "Resources",
+      "description": "Service resources and costing attributes are required for line-level service interpretation.",
+      "keyFields": [
+        "Resource No.",
+        "Description",
+        "Base Unit of Measure",
+        "Direct Unit Cost",
+        "Gen. Prod. Posting Group",
+        "VAT Prod. Posting Group",
+        "Dimensions"
+      ]
+    },
+    {
+      "title": "Dimensions & Projects",
+      "description": "Dimension governance and project controls must align with invoice account assignments.",
+      "keyFields": [
+        "Department Dimension",
+        "Cost Center Dimension",
+        "Project No.",
+        "Dimension Value Rules",
+        "Dimension Priorities"
+      ]
+    },
+    {
+      "title": "Tax/VAT Setup",
+      "description": "VAT calculation and posting groups must support policy-compliant invoice posting.",
+      "keyFields": [
+        "VAT Business Posting Group",
+        "VAT Product Posting Group",
+        "VAT %",
+        "Tax Area/Tax Group",
+        "Reverse Charge Rules"
+      ]
+    },
+    {
+      "title": "Purchases & Payables Setup",
+      "description": "Purchasing document behavior, approvals, and posting defaults must be prepared for service flows.",
+      "keyFields": [
+        "Purchases & Payables Setup",
+        "No. Series",
+        "Posted Purchase Receipt Requirement",
+        "Approval Workflow",
+        "Invoice Tolerance"
+      ]
+    }
+  ],
+  "recommendedTestData": {
+    "sap": "PO with Item Category D, multiple service lines, and accepted SES.",
+    "bc": "PO with multiple service lines and Posted Purchase Receipt aligned to invoice quantities."
+  },
+  "mockInvoiceData": {
+    "vendor": "TechServ Solutions",
+    "vendorEmail": "vendor@example.com",
+    "invoiceNumber": "INV-20260511",
+    "invoiceDate": "2026-05-11",
+    "poNumber": "4500012345",
+    "sesNumber": "5000456789",
+    "globalInvoiceId": "SERV-INV-20260511-784512",
+    "currency": "USD",
+    "lineItems": [
+      {
+        "service": "Field Maintenance - Batch A",
+        "quantity": 10,
+        "rate": 125,
+        "amount": 1250
+      },
+      {
+        "service": "Calibration Support",
+        "quantity": 4,
+        "rate": 210,
+        "amount": 840
+      }
+    ],
+    "taxAmount": 250.8
+  },
+  "stepDemo": [
+    {
+      "id": 1,
+      "title": "Email Receipt & Initial Ingestion",
+      "shortLabel": "Email Ingestion",
+      "agent": "Orchestrator Agent",
+      "exceptionCode": "MAIL_PARSE_ERROR"
+    },
+    {
+      "id": 2,
+      "title": "Extraction (Service PO Extractor Agent)",
+      "shortLabel": "Extraction",
+      "agent": "Service PO Extractor Agent",
+      "exceptionCode": "LOW_CONFIDENCE"
+    },
+    {
+      "id": 3,
+      "title": "Compliance Checks",
+      "shortLabel": "Compliance",
+      "agent": "Translator + Compliance Checker + Master Data Agent",
+      "exceptionCode": "VENDOR_BLOCKED"
+    },
+    {
+      "id": 4,
+      "title": "Validation (Three-Way Match)",
+      "shortLabel": "Validation",
+      "agent": "Service Validation Agent",
+      "exceptionCode": "QTY_MISMATCH"
+    },
+    {
+      "id": 5,
+      "title": "Posting",
+      "shortLabel": "Posting",
+      "agent": "Service Posting Agent",
+      "exceptionCode": "POSTING_FAILED"
+    }
+  ],
+  "flowNodes": [
+    {
+      "id": "trigger",
+      "title": "Vendor Email",
+      "description": "Incoming invoice to dedicated mailbox",
+      "tools": "Microsoft Graph API"
+    },
+    {
+      "id": "orchestrator",
+      "title": "Orchestrator Agent",
+      "description": "Monitors inbox, generates Global ID, routes workflow",
+      "tools": "Routing + orchestration rules"
+    },
+    {
+      "id": "extractor",
+      "title": "Service PO Extractor Agent",
+      "description": "OCR + AI extraction with confidence scoring",
+      "tools": "OCR, document intelligence"
+    },
+    {
+      "id": "translator",
+      "title": "Service PO Translator Agent",
+      "description": "Normalizes language, currency, tax coding",
+      "tools": "UoM and currency conversion"
+    },
+    {
+      "id": "compliance",
+      "title": "Compliance + Master Data Agent",
+      "description": "Vendor, tax, policy, completeness, duplicate checks",
+      "tools": "Master data lookup"
+    },
+    {
+      "id": "validation",
+      "title": "Service Validation Agent",
+      "description": "Three-way match and tolerance evaluation",
+      "tools": "OMR6 / BC tolerance rules"
+    },
+    {
+      "id": "posting",
+      "title": "Service Posting Agent",
+      "description": "Final enrichment and ERP posting",
+      "tools": "MIRO / BC Purchase Invoice API"
+    },
+    {
+      "id": "completion",
+      "title": "Completion",
+      "description": "Posted invoice document and audit update",
+      "tools": "Ledger + audit log"
+    }
+  ],
+  "exceptionCodes": [
+    "LOW_CONFIDENCE",
+    "VENDOR_BLOCKED",
+    "DUPLICATE_INVOICE",
+    "QTY_MISMATCH"
+  ]
+}
