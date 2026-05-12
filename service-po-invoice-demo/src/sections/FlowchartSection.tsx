@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ComponentType } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import gsap from 'gsap'
 import {
   Bot,
   Check,
@@ -35,6 +36,8 @@ export default function FlowchartSection() {
   >
   const [current, setCurrent] = useState(0)
   const scrollerRef = useRef<HTMLDivElement | null>(null)
+  const pathRefs = useRef<Array<SVGPathElement | null>>([])
+  const activePathTweenRef = useRef<gsap.core.Tween | null>(null)
 
   const rowGap = 160
   const topPad = 120
@@ -57,6 +60,50 @@ export default function FlowchartSection() {
     const target = Math.max(0, p.y - el.clientHeight * 0.45)
     el.scrollTo({ top: target, behavior: 'smooth' })
   }, [current, nodePositions])
+
+  useEffect(() => {
+    if (activePathTweenRef.current) {
+      activePathTweenRef.current.kill()
+      activePathTweenRef.current = null
+    }
+
+    pathRefs.current.forEach((path, idx) => {
+      if (!path) return
+
+      if (idx < current) {
+        gsap.set(path, {
+          stroke: '#2563EB',
+          opacity: 1,
+          strokeDasharray: '',
+          strokeDashoffset: 0,
+        })
+        return
+      }
+
+      if (idx === current && current < nodes.length - 1) {
+        gsap.set(path, {
+          stroke: '#2563EB',
+          opacity: 1,
+          strokeDasharray: '8 6',
+          strokeDashoffset: 0,
+        })
+        activePathTweenRef.current = gsap.to(path, {
+          strokeDashoffset: -14,
+          duration: 0.9,
+          ease: 'none',
+          repeat: -1,
+        })
+        return
+      }
+
+      gsap.set(path, {
+        stroke: '#cbd5e1',
+        opacity: 1,
+        strokeDasharray: '6 6',
+        strokeDashoffset: 0,
+      })
+    })
+  }, [current, nodes.length])
 
   const activeNode = nodes[current]
   const activeCard = cards[activeNode.id] ?? { label: activeNode.title, title: activeNode.title, bullets: [] }
@@ -94,21 +141,15 @@ export default function FlowchartSection() {
                       strokeWidth="2"
                     />
                     {nodes.slice(0, -1).map((node, idx) => (
-                      <motion.path
+                      <path
                         key={`${node.id}-path`}
-                        className={current > idx ? 'flow-dash' : ''}
+                        ref={(el) => {
+                          pathRefs.current[idx] = el
+                        }}
                         d={pathFor(idx)}
                         fill="none"
-                        stroke="#2563EB"
                         strokeWidth="2.2"
-                        strokeDasharray="8 6"
-                        initial={{ pathLength: 0, opacity: 0.25 }}
-                        animate={{
-                          pathLength: current > idx ? 1 : 0,
-                          opacity: current > idx ? 1 : 0.3,
-                          strokeDashoffset: current > idx ? [14, 0] : 14,
-                        }}
-                        transition={{ duration: 0.65, ease: 'easeOut' }}
+                        strokeLinecap="round"
                       />
                     ))}
                   </svg>
