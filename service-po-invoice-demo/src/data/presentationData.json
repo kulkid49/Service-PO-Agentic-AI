@@ -207,6 +207,150 @@
       "agent": "Service Posting Agent"
     }
   ],
+  "stepDemoFull": [
+    {
+      "id": 0,
+      "stepperLabel": "Trigger",
+      "title": "End-to-End Agentic Process Overview",
+      "leftVisual": "trigger",
+      "bullets": [
+        "Trigger: Vendor sends an email with the Service Invoice (PDF / scanned image / XML) to the dedicated Agentic AI mailbox"
+      ]
+    },
+    {
+      "id": 1,
+      "stepperLabel": "Email",
+      "title": "Email Receipt & Initial Ingestion",
+      "leftVisual": "email",
+      "bullets": [
+        "The Orchestrator Agent continuously monitors the dedicated inbox using Microsoft Graph API / Outlook Connector / IMAP.",
+        "New email with attachment(s) is detected.",
+        "Email metadata (From, Subject, Date, Vendor Email) and attachments are captured.",
+        "A unique Global Service Invoice ID is generated (e.g., SERV-INV-20260511-784512).",
+        "The email + attachment is archived and forwarded to Service PO Extractor Agent."
+      ]
+    },
+    {
+      "id": 2,
+      "stepperLabel": "Extraction",
+      "title": "Extraction (Service PO Extractor Agent)",
+      "leftVisual": "extraction",
+      "bullets": [
+        "Agent Activation: Extractor Agent receives the raw email and attachment.",
+        "Document Processing:",
+        "Determines file type (PDF, Image, XML, etc.).",
+        "Applies OCR + AI Document Intelligence (NA10 / Azure Form Recognizer / similar).",
+        "Handles multi-page invoices and complex tables.",
+        "Key Data Extracted:",
+        "Vendor Name / Vendor Code",
+        "Invoice Number & Invoice Date",
+        "PO Number (critical for Service PO)",
+        "Service Entry Sheet (SES) Number (if mentioned)",
+        "Line items: Service Description, Service Number, Quantity, Unit, Rate, Amount",
+        "Tax details, Total Amount, Currency",
+        "Payment Due Date, Bank Details",
+        "Any supporting documents (SES approval, delivery note)",
+        "Service-Specific Extraction:",
+        "Identifies Item Category ‘D’ references (SAP) or Resource lines (BC).",
+        "Extracts account assignment hints (Cost Center, WBS, Project No.).",
+        "Quality Check:",
+        "Confidence scoring per field and overall document.",
+        "(Demo shows all fields above 85% – no exception routing)",
+        "Output: Structured JSON payload containing all extracted data + original document link.",
+        "Hand-off: Payload sent to Service PO Translator Agent."
+      ]
+    },
+    {
+      "id": 3,
+      "stepperLabel": "Compliance",
+      "title": "Compliance Checks (Service Compliance Checker Agent + Service Master Data Agent)",
+      "leftVisual": "compliance",
+      "bullets": [
+        "Translator Agent first normalizes the data:",
+        "Language translation",
+        "Currency & UoM conversion",
+        "Tax code standardization (e.g., “VAT 12%” → System Tax Code “UZ_VAT12”)",
+        "Field formatting per ERP rules",
+        "Compliance Checker Agent performs layered validations:",
+        "Vendor Validation (via Service Master Data Agent):",
+        "Vendor exists and is active in the relevant Company Code.",
+        "Vendor not blocked for posting/payment.",
+        "Bank account matches (fraud prevention).",
+        "Tax ID / GSTIN / PINFL matches master record.",
+        "Regulatory & Policy Compliance:",
+        "Country-specific rules (Uzbekistan VAT, India GST, etc.).",
+        "Withholding tax applicability for services.",
+        "Document Completeness:",
+        "PO Number is present and valid.",
+        "Service lines are properly identified.",
+        "Duplicate Check:",
+        "Searches across SAP + BC using Vendor + Invoice No. + Date + Amount.",
+        "Decision:",
+        "All checks passed → Proceed to Validation Agent.",
+        "(Demo shows every check as passed—green tick on each.)"
+      ]
+    },
+    {
+      "id": 4,
+      "stepperLabel": "Validation",
+      "title": "Validation (Service Validation Agent)",
+      "leftVisual": "validation",
+      "bullets": [
+        "This is the Three-Way Match stage specifically for Service POs.",
+        "Validation Agent receives normalized payload.",
+        "ERP Routing: Orchestrator identifies target system (SAP or D365 BC) based on Company Code / PO prefix.",
+        "Matching Process:",
+        "For SAP:",
+        "Retrieves PO details (ME23N logic) using PO Number.",
+        "Verifies Item Category = D (Services).",
+        "Checks Service Entry Sheet (SES) status in ML81N — must be Accepted.",
+        "Compares: Quantities / Amounts between Invoice vs Accepted SES vs PO; Account assignments.",
+        "For D365 Business Central:",
+        "Retrieves Purchase Order.",
+        "Checks if Posted Purchase Receipt exists for the Resource / Service lines.",
+        "Compares: Qty. to Invoice vs Qty. Received; Unit Cost and Line Amounts.",
+        "Tolerance Check:",
+        "Applies configured tolerances (Price, Quantity, Amount).",
+        "SAP: Uses OMR6 / LIV tolerances.",
+        "BC: Uses Purchases & Payables Setup tolerances.",
+        "Decision:",
+        "Match within tolerance → Auto-approve and send to Posting Agent.",
+        "(Demo shows all quantities and amounts matching, tolerance bar within the green “auto-approve” zone.)"
+      ]
+    },
+    {
+      "id": 5,
+      "stepperLabel": "Posting",
+      "title": "Posting (Service Posting Agent)",
+      "leftVisual": "posting",
+      "bullets": [
+        "Only clean, validated invoices reach this stage.",
+        "Posting Agent receives approved payload.",
+        "Final Enrichment:",
+        "Pulls latest account assignments (Cost Center, WBS, Project, etc.).",
+        "Applies correct tax codes and G/L accounts.",
+        "System-Specific Posting:",
+        "For SAP:",
+        "Uses BAPI_INCOMINGINVOICE_CREATE or IDoc (INVOIC01) or calls MIRO-equivalent API.",
+        "References PO Number + Accepted SES.",
+        "Posts the invoice in MIRO background mode.",
+        "Updates PO history with Invoice Receipt (IR).",
+        "For D365 Business Central:",
+        "Creates Purchase Invoice document via API / Web Service.",
+        "Uses Get Receipt Lines (if receipt-based) or direct PO invoicing.",
+        "Posts the Purchase Invoice.",
+        "Updates PO status and creates Vendor Ledger Entry.",
+        "Post-Posting Actions:",
+        "Creates Vendor Open Item.",
+        "Sends confirmation email to AP team and Vendor (optional).",
+        "Updates central audit log and dashboard.",
+        "Triggers Payment Proposal Run (F110 in SAP / Payment Journal in BC) if due date is met.",
+        "Success Confirmation:",
+        "Posting Agent returns Posted Document Number (SAP Invoice Doc No. / BC Posted Invoice No.).",
+        "Orchestrator marks the Global Service Invoice ID as “Completed”."
+      ]
+    }
+  ],
   "flowNodes": [
     {
       "id": "trigger",

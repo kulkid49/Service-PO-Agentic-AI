@@ -7,16 +7,16 @@ import {
   ChevronLeft,
   ChevronRight,
   Database,
-  FileJson,
   Mail,
   ScanSearch,
-  SearchCheck,
   ShieldCheck,
   Sparkles,
+  Inbox,
+  Play,
 } from 'lucide-react'
 import data from '../data/presentationData.json'
 
-type Step = (typeof data.stepDemo)[number]
+type FullStep = (typeof data.stepDemoFull)[number]
 
 function ConfidenceArc({ label, value }: { label: string; value: number }) {
   const radius = 20
@@ -50,35 +50,331 @@ function ConfidenceArc({ label, value }: { label: string; value: number }) {
   )
 }
 
+function isHeaderLine(line: string) {
+  return (
+    line.endsWith(':') ||
+    line === 'Matching Process:' ||
+    line === 'Decision:' ||
+    line === 'Quality Check:' ||
+    line === 'Document Processing:' ||
+    line === 'Key Data Extracted:' ||
+    line === 'Service-Specific Extraction:' ||
+    line === 'Final Enrichment:' ||
+    line === 'System-Specific Posting:' ||
+    line === 'Post-Posting Actions:' ||
+    line === 'Success Confirmation:' ||
+    line.startsWith('For ')
+  )
+}
+
+function LeftVisual({
+  step,
+  subIndex,
+  mode,
+  globalInvoiceId,
+}: {
+  step: FullStep
+  subIndex: number
+  mode: 'sap' | 'bc'
+  globalInvoiceId: string
+}) {
+  if (step.leftVisual === 'trigger') {
+    return (
+      <div className="relative h-56 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white">
+        <motion.div
+          className="absolute left-8 top-1/2 -translate-y-1/2 rounded-2xl bg-white p-4 shadow-sm"
+          initial={{ x: -90, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+        >
+          <Mail className="text-blue-600" size={26} />
+        </motion.div>
+        <div className="absolute right-10 top-1/2 -translate-y-1/2 rounded-2xl border border-gray-200 bg-white p-5">
+          <Inbox className="text-pink-500" size={30} />
+        </div>
+        <motion.div
+          className="absolute left-24 top-1/2 h-1 w-28 -translate-y-1/2 rounded-full bg-blue-200"
+          animate={{ opacity: [0.4, 1, 0.4] }}
+          transition={{ duration: 1.3, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute left-10 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-pink-500"
+          animate={{ x: [0, 230] }}
+          transition={{ duration: 1.2, ease: 'easeInOut', repeat: Infinity, repeatDelay: 0.6 }}
+        />
+      </div>
+    )
+  }
+
+  if (step.leftVisual === 'email') {
+    return (
+      <div className="relative h-56 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white">
+        <div className="absolute left-8 top-8 rounded-2xl border border-gray-200 bg-white p-4">
+          <div className="relative">
+            <Inbox className="text-blue-600" size={30} />
+            <motion.span
+              className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-pink-500 text-[10px] font-semibold text-white"
+              initial={{ scale: 0 }}
+              animate={{ scale: subIndex >= 2 ? 1 : 0 }}
+              transition={{ duration: 0.25 }}
+            >
+              1
+            </motion.span>
+          </div>
+        </div>
+        <motion.div
+          className="absolute left-12 top-[104px] rounded-xl bg-white p-3 shadow-sm"
+          initial={{ x: -10, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.35 }}
+        >
+          <Mail className="text-pink-500" size={22} />
+        </motion.div>
+        <div className="absolute right-10 bottom-10 rounded-2xl border border-gray-200 bg-white p-4">
+          <Archive className="text-gray-500" size={26} />
+        </div>
+        <motion.div
+          className="absolute left-16 top-[112px]"
+          animate={subIndex >= 5 ? { x: 310, y: 78, opacity: [1, 1, 0.7] } : { x: 0, y: 0, opacity: 1 }}
+          transition={{ duration: 0.9, ease: 'easeInOut' }}
+        >
+          <Mail className="text-blue-600" size={18} />
+        </motion.div>
+        <motion.div
+          className="absolute left-8 bottom-8 inline-flex items-center gap-2 rounded-full bg-pink-100 px-3 py-1 text-xs font-semibold text-pink-600"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: subIndex >= 4 ? 1 : 0, y: subIndex >= 4 ? 0 : 8 }}
+        >
+          <Sparkles size={14} />
+          {globalInvoiceId}
+        </motion.div>
+      </div>
+    )
+  }
+
+  if (step.leftVisual === 'extraction') {
+    const done = subIndex >= step.bullets.length
+    return (
+      <div className="relative h-56 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white">
+        <div className="absolute left-8 top-8 h-36 w-32 rounded-xl border border-gray-200 bg-white" />
+        <motion.div
+          className="absolute left-8 top-8 h-36 w-10 bg-pink-200/40"
+          animate={{ x: [0, 88, 0] }}
+          transition={{ duration: 1.4, ease: 'easeInOut', repeat: Infinity }}
+        />
+        <div className="absolute right-8 top-8 h-36 w-48 rounded-xl bg-gray-900 p-3 font-mono text-[10px] text-green-300">
+          <div>{'{'}</div>
+          <div>  "VendorName": "TechServ",</div>
+          <div>  "InvoiceNo": "INV-20260511",</div>
+          <div>  "PONumber": "4500012345"</div>
+          <div>{'}'}</div>
+        </div>
+        <div className="absolute bottom-6 left-8 grid grid-cols-4 gap-2">
+          {[
+            { label: 'Vendor', value: 96 },
+            { label: 'Invoice', value: 94 },
+            { label: 'PO', value: 91 },
+            { label: 'Lines', value: 88 },
+          ].map((item) => (
+            <div key={item.label} className="w-[78px]">
+              <ConfidenceArc label={item.label} value={item.value} />
+            </div>
+          ))}
+        </div>
+        <motion.div
+          className="absolute right-10 bottom-8 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: done ? 1 : 0, y: done ? 0 : 8 }}
+        >
+          <CheckCircle2 size={14} />
+          Extraction Successful
+        </motion.div>
+      </div>
+    )
+  }
+
+  if (step.leftVisual === 'compliance') {
+    const layers = [
+      'Vendor Active',
+      'Tax ID Match',
+      'PO Valid',
+      'No Duplicate',
+    ]
+    const count = Math.min(layers.length, Math.max(0, subIndex - 5))
+    return (
+      <div className="relative h-56 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white">
+        <div className="absolute left-8 top-8 inline-flex items-center gap-2 rounded-2xl bg-white p-4 shadow-sm">
+          <ShieldCheck className="text-blue-600" size={28} />
+          <span className="text-sm font-semibold text-gray-800">Checks</span>
+        </div>
+        <div className="absolute left-8 bottom-8 right-8 grid grid-cols-2 gap-3">
+          {layers.map((l, idx) => (
+            <motion.div
+              key={l}
+              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-700"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {l}
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: idx < count ? 1 : 0 }}
+                className="inline-flex rounded-full bg-emerald-50 p-1 text-emerald-600"
+              >
+                <Check size={14} />
+              </motion.span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (step.leftVisual === 'validation') {
+    const safe = subIndex >= 18
+    return (
+      <div className="relative h-56 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white">
+        <div className="absolute left-8 top-8 right-8 grid grid-cols-3 gap-3 text-[11px] text-gray-600">
+          {['Invoice', mode === 'sap' ? 'SES / Receipt' : 'Receipt', 'PO'].map((h) => (
+            <div key={h} className="rounded-xl border border-gray-200 bg-white p-3">
+              <p className="font-semibold text-gray-800">{h}</p>
+              <p className="mt-1 text-gray-400">Qty / Amount</p>
+            </div>
+          ))}
+        </div>
+        <motion.div
+          className="absolute left-10 top-[120px] h-1 w-[82%] rounded-full bg-blue-200"
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+          style={{ transformOrigin: 'left' }}
+        />
+        <div className="absolute left-8 bottom-10 right-8">
+          <div className="h-3 rounded-full bg-gray-200" />
+          <motion.div
+            className="mt-[-12px] h-3 rounded-full bg-emerald-500"
+            initial={{ width: '0%' }}
+            animate={{ width: safe ? '72%' : '40%' }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+          />
+          <p className="mt-2 text-xs font-semibold text-emerald-600">Tolerance within auto-approve zone</p>
+        </div>
+        <motion.div
+          className="absolute right-10 bottom-8 inline-flex rounded-full bg-pink-100 px-3 py-1 text-xs font-semibold text-pink-600"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: safe ? 1 : 0, y: safe ? 0 : 8 }}
+        >
+          Auto-Approved
+        </motion.div>
+      </div>
+    )
+  }
+
+  const complete = subIndex >= step.bullets.length
+  return (
+    <div className="relative h-56 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white">
+      <div className="absolute left-8 top-8 inline-flex items-center gap-2 rounded-2xl bg-white p-4 shadow-sm">
+        <Database className="text-blue-600" size={28} />
+        <span className="text-sm font-semibold text-gray-800">{mode === 'sap' ? 'SAP Posting' : 'BC Posting'}</span>
+      </div>
+      <motion.div
+        className="absolute right-10 top-10 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-blue-600"
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+      >
+        5100000123
+      </motion.div>
+      <motion.div
+        className="absolute left-8 bottom-10 inline-flex items-center gap-2 rounded-full bg-pink-100 px-3 py-1 text-xs font-semibold text-pink-600"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: complete ? 1 : 0, y: complete ? 0 : 8 }}
+      >
+        <Check size={14} />
+        Completed
+      </motion.div>
+      <motion.div
+        className="absolute right-10 bottom-10 h-8 w-8 rounded-full bg-pink-200"
+        animate={{ scale: [1, 1.2, 1] }}
+        transition={{ duration: 1.2, repeat: Infinity }}
+      />
+      <motion.div
+        className="absolute right-20 bottom-14 h-4 w-4 rounded-full bg-blue-200"
+        animate={{ scale: [1, 1.3, 1] }}
+        transition={{ duration: 1.4, repeat: Infinity, delay: 0.1 }}
+      />
+    </div>
+  )
+}
+
 export default function StepDemoSection() {
-  const steps = data.stepDemo as Step[]
+  const steps = data.stepDemoFull as FullStep[]
   const [active, setActive] = useState(0)
+  const [subIndex, setSubIndex] = useState(1)
   const [autoPlay, setAutoPlay] = useState(false)
   const [mode, setMode] = useState<'sap' | 'bc'>('sap')
 
   useEffect(() => {
     if (!autoPlay) return undefined
     const id = window.setInterval(() => {
-      setActive((prev) => (prev + 1) % steps.length)
+      setSubIndex((prev) => {
+        const step = steps[active]
+        if (!step) return prev
+
+        if (active === 0) {
+          setActive(1)
+          return 1
+        }
+
+        if (prev < step.bullets.length) return prev + 1
+        if (active < steps.length - 1) {
+          setActive((s) => s + 1)
+          return 1
+        }
+
+        setAutoPlay(false)
+        return prev
+      })
     }, 3500)
     return () => window.clearInterval(id)
-  }, [autoPlay, steps.length])
+  }, [autoPlay, active, steps])
 
-  const current = steps[active]
   const mock = data.mockInvoiceData
+  const current = steps[active]
+  const visibleBullets = useMemo(() => current.bullets.slice(0, Math.min(subIndex, current.bullets.length)), [current, subIndex])
 
-  const icons = [Mail, ScanSearch, ShieldCheck, SearchCheck, Database]
-  const StepIcon = icons[active] ?? Mail
+  useEffect(() => {
+    setSubIndex(1)
+  }, [active])
 
-  const confidence = useMemo(
-    () => [
-      { label: 'Vendor', value: 96 },
-      { label: 'Invoice', value: 94 },
-      { label: 'PO Number', value: 91 },
-      { label: 'Service Lines', value: 88 },
-    ],
-    [],
-  )
+  const onNext = () => {
+    if (active === 0) {
+      setActive(1)
+      return
+    }
+    if (subIndex < current.bullets.length) {
+      setSubIndex((v) => v + 1)
+      return
+    }
+    if (active < steps.length - 1) {
+      setActive((v) => v + 1)
+      return
+    }
+  }
+
+  const onPrev = () => {
+    if (active === 0) return
+    if (subIndex > 1) {
+      setSubIndex((v) => v - 1)
+      return
+    }
+    if (active > 1) {
+      const prevStep = steps[active - 1]
+      setActive((v) => v - 1)
+      setSubIndex(prevStep.bullets.length)
+      return
+    }
+    setActive(0)
+  }
 
   return (
     <section
@@ -87,8 +383,8 @@ export default function StepDemoSection() {
       aria-label="Step-by-step visual demo"
     >
       <div className="mx-auto max-w-7xl">
-        <h2 className="text-3xl font-bold text-gray-800 lg:text-4xl">Step-by-Step Visual Demo - Agentic AI Operation</h2>
-        <p className="mt-3 text-gray-600">Ideal success-path walkthrough from email receipt to posted invoice completion.</p>
+        <h2 className="text-3xl font-bold text-gray-800 lg:text-4xl">Step-by-Step Visual Demo - Full Agentic AI Operation</h2>
+        <p className="mt-3 text-gray-600">Success path only. All validations pass and posting completes automatically.</p>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-5">
           <motion.aside
@@ -97,16 +393,14 @@ export default function StepDemoSection() {
             animate={{ opacity: 1, x: 0 }}
             className="rounded-2xl border border-blue-100 bg-white p-6 lg:col-span-2"
           >
-            <div className="inline-flex rounded-2xl bg-gradient-to-br from-blue-50 to-pink-50 p-5 text-pink-500">
-              <StepIcon size={40} />
-            </div>
-            <h3 className="mt-4 text-2xl font-bold text-blue-600">{current.title}</h3>
-            <p className="mt-2 text-sm text-gray-600">{current.agent}</p>
+            <LeftVisual step={current} subIndex={subIndex} mode={mode} globalInvoiceId={mock.globalInvoiceId} />
+            <h3 className="mt-5 text-xl font-bold text-blue-600">{current.title}</h3>
+            <p className="mt-2 text-sm text-gray-600">Ideal success path demonstration</p>
 
-            <div className="mt-6 space-y-3 text-sm text-gray-600">
+            <div className="mt-5 space-y-3 text-sm text-gray-600">
               <p className="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2">
                 <Mail size={14} className="text-blue-600" />
-                From: vendor@company.com
+                From: {mock.vendorEmail}
               </p>
               <p className="inline-flex items-center gap-2 rounded-lg bg-pink-50 px-3 py-2">
                 <Sparkles size={14} className="text-pink-500" />
@@ -116,121 +410,72 @@ export default function StepDemoSection() {
           </motion.aside>
 
           <div className="rounded-2xl border border-gray-200 bg-white p-6 lg:col-span-3">
-            <AnimatePresence mode="wait">
-              <motion.div key={current.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                {active === 0 ? (
-                  <div className="space-y-4 text-sm text-gray-600">
-                    <motion.div className="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2" animate={{ x: [50, 0] }}>
-                      <Mail size={16} className="text-blue-600" />
-                      Subject: Service Invoice #{mock.invoiceNumber}
-                    </motion.div>
-                    <p>Date: {mock.invoiceDate}</p>
-                    <p>Attachment(s): invoice.pdf</p>
-                    <motion.div animate={{ x: [0, 22, 0] }} transition={{ repeat: Infinity, duration: 2.2 }} className="inline-flex items-center gap-2">
-                      <Archive size={16} className="text-pink-500" />
-                      Email archived and routed
-                    </motion.div>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-pink-500">Step {active + 1} of {steps.length}</p>
+                <h3 className="mt-1 text-2xl font-bold text-blue-600">{current.title}</h3>
+              </div>
+              <div className="flex items-center gap-3">
+                {active >= 4 ? (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <label className="inline-flex items-center gap-2">
+                      <input type="radio" checked={mode === 'sap'} onChange={() => setMode('sap')} /> SAP
+                    </label>
+                    <label className="inline-flex items-center gap-2">
+                      <input type="radio" checked={mode === 'bc'} onChange={() => setMode('bc')} /> BC
+                    </label>
                   </div>
                 ) : null}
+              </div>
+            </div>
 
-                {active === 1 ? (
-                  <div className="space-y-4">
-                    <motion.div
-                      className="relative overflow-hidden rounded-xl border border-gray-200 bg-white p-4 text-sm"
-                      initial={{ opacity: 0.6 }}
-                      animate={{ opacity: 1 }}
-                    >
-                      <motion.div
-                        className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-pink-200/40"
-                        animate={{ x: ['0%', '1200%'] }}
-                        transition={{ repeat: Infinity, duration: 2 }}
-                      />
-                      OCR + AI Document Intelligence scanning service invoice
-                    </motion.div>
-                    <div className="rounded-xl bg-gray-900 p-4 font-mono text-xs text-green-300">
-                      <div>{'{'}</div>
-                      <div>  "VendorName": "{mock.vendor}",</div>
-                      <div>  "InvoiceNo": "{mock.invoiceNumber}",</div>
-                      <div>  "PONumber": "{mock.poNumber}",</div>
-                      <div>  "SESNumber": "{mock.sesNumber}"</div>
-                      <div>{'}'}</div>
-                    </div>
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                      {confidence.map((item) => (
-                        <ConfidenceArc key={item.label} label={item.label} value={item.value} />
-                      ))}
-                    </div>
-                    <p className="inline-flex items-center gap-2 rounded-lg bg-pink-50 px-3 py-2 text-pink-600">
-                      <CheckCircle2 size={15} /> Extraction successful
-                    </p>
-                  </div>
-                ) : null}
+            <ul className="mt-6 space-y-2">
+              <AnimatePresence initial={false}>
+                {visibleBullets.map((line, idx) => (
+                  <motion.li
+                    key={`${active}-${idx}-${line}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                    className={`text-sm leading-relaxed ${isHeaderLine(line) ? 'font-semibold text-gray-800' : 'text-gray-600'}`}
+                  >
+                    {isHeaderLine(line) ? line : `• ${line}`}
+                  </motion.li>
+                ))}
+              </AnimatePresence>
+            </ul>
 
-                {active === 2 ? (
-                  <div className="space-y-3 text-sm text-gray-600">
-                    <p className="rounded-lg bg-blue-50 px-3 py-2">Tax Code normalized: VAT 12% → UZ_VAT12</p>
-                    <p className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2"><CheckCircle2 size={16} className="text-blue-600" /> Vendor Validation</p>
-                    <p className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2"><ShieldCheck size={16} className="text-blue-600" /> Tax ID Match</p>
-                    <p className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2"><FileJson size={16} className="text-blue-600" /> PO Valid</p>
-                    <p className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2"><CheckCircle2 size={16} className="text-blue-600" /> No Duplicate Found</p>
-                  </div>
-                ) : null}
-
-                {active === 3 ? (
-                  <div className="space-y-4 text-sm">
-                    <div className="flex gap-2">
-                      <label className="inline-flex items-center gap-2 text-gray-600">
-                        <input type="radio" checked={mode === 'sap'} onChange={() => setMode('sap')} /> SAP Mode
-                      </label>
-                      <label className="inline-flex items-center gap-2 text-gray-600">
-                        <input type="radio" checked={mode === 'bc'} onChange={() => setMode('bc')} /> BC Mode
-                      </label>
-                    </div>
-                    <div className="grid gap-3 md:grid-cols-3">
-                      {['Invoice Data', mode === 'sap' ? 'SES (Accepted)' : 'Posted Receipt', 'Purchase Order'].map((h) => (
-                        <div key={h} className="rounded-lg border border-gray-200 bg-white p-3 text-gray-600">{h}</div>
-                      ))}
-                    </div>
-                    <p className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-blue-600">Tolerance within safe zone</p>
-                    <p className="inline-flex rounded-full bg-pink-50 px-3 py-1 text-pink-600">Auto-approval stamp applied</p>
-                  </div>
-                ) : null}
-
-                {active === 4 ? (
-                  <div className="space-y-3 text-sm text-gray-600">
-                    <p>Final enrichment: Cost Center/WBS resolved.</p>
-                    <p>{mode === 'sap' ? 'MIRO Background Posting dialog executed.' : 'Create Purchase Invoice dialog executed.'}</p>
-                    <motion.p initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="inline-flex rounded-full bg-pink-100 px-3 py-1 font-semibold text-pink-600">
-                      Posted Invoice 5100000123
-                    </motion.p>
-                    <p className="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-blue-600">
-                      <Check size={15} /> Global Service Invoice ID Completed
-                    </p>
-                    <motion.p animate={{ x: [0, 12, 0] }} className="inline-flex items-center gap-2 rounded-lg bg-pink-50 px-3 py-2 text-pink-600">
-                      <Mail size={14} /> Confirmation email dispatched
-                    </motion.p>
-                  </div>
-                ) : null}
-              </motion.div>
-            </AnimatePresence>
+            {active === 0 ? (
+              <button
+                type="button"
+                onClick={() => setActive(1)}
+                className="mt-8 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
+              >
+                <Play size={16} />
+                Start Process
+              </button>
+            ) : null}
           </div>
         </div>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <button
             type="button"
-            onClick={() => setActive((v) => Math.max(0, v - 1))}
+            onClick={onPrev}
             className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700"
             aria-label="Previous step"
+            disabled={active === 0}
           >
             <ChevronLeft size={16} />
             Previous
           </button>
           <button
             type="button"
-            onClick={() => setActive((v) => Math.min(steps.length - 1, v + 1))}
+            onClick={onNext}
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white"
             aria-label="Next step"
+            disabled={active === steps.length - 1 && subIndex >= current.bullets.length}
           >
             Next
             <ChevronRight size={16} />
@@ -244,7 +489,7 @@ export default function StepDemoSection() {
           </button>
         </div>
 
-        <div className="mt-8 grid gap-2 md:grid-cols-5">
+        <div className="mt-8 grid gap-2 md:grid-cols-6">
           {steps.map((step, idx) => {
             const completed = idx < active
             const activeStep = idx === active
@@ -265,7 +510,7 @@ export default function StepDemoSection() {
                   <span className={`grid h-6 w-6 place-items-center rounded-full border text-xs ${activeStep ? 'border-blue-600' : ''}`}>
                     {completed ? <Check size={12} /> : step.id}
                   </span>
-                  {step.shortLabel}
+                  {step.stepperLabel}
                 </div>
               </button>
             )
