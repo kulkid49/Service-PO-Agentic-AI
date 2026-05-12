@@ -1,4 +1,4 @@
-import { useMemo, useState, type ComponentType } from 'react'
+import { useEffect, useMemo, useRef, useState, type ComponentType } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   Bot,
@@ -31,15 +31,29 @@ export default function FlowchartSection() {
   const nodes = data.flowNodes
   const explanations = data.flowExplanations
   const [current, setCurrent] = useState(0)
+  const scrollerRef = useRef<HTMLDivElement | null>(null)
+
+  const rowGap = 160
+  const topPad = 120
+  const bottomPad = 120
+  const totalHeight = topPad + (nodes.length - 1) * rowGap + bottomPad
 
   const nodePositions = useMemo(
     () =>
       nodes.map((_, idx) => ({
         x: idx % 2 === 0 ? 180 : 420,
-        y: 80 + idx * 88,
+        y: topPad + idx * rowGap,
       })),
-    [nodes],
+    [nodes, rowGap, topPad],
   )
+
+  useEffect(() => {
+    const el = scrollerRef.current
+    const p = nodePositions[current]
+    if (!el || !p) return
+    const target = Math.max(0, p.y - el.clientHeight * 0.45)
+    el.scrollTo({ top: target, behavior: 'smooth' })
+  }, [current, nodePositions])
 
   const activeNode = nodes[current]
   const activeText = explanations[activeNode.id as keyof typeof explanations]
@@ -64,94 +78,115 @@ export default function FlowchartSection() {
               <button
                 type="button"
                 onClick={() => setCurrent((v) => Math.max(0, v - 1))}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
                 aria-label="Previous step"
               >
-                <ChevronLeft size={14} />
+                <ChevronLeft size={16} />
                 Previous Step
               </button>
               <button
                 type="button"
                 onClick={() => setCurrent((v) => Math.min(nodes.length - 1, v + 1))}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm text-white"
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
                 aria-label="Next step"
               >
                 Next Step
-                <ChevronRight size={14} />
+                <ChevronRight size={16} />
               </button>
             </div>
 
             <div className="relative rounded-2xl border border-gray-200 bg-white p-4">
-              <div className="relative h-[760px] w-full overflow-hidden rounded-xl bg-gradient-to-b from-blue-50 to-white">
-                <svg viewBox="0 0 600 760" className="absolute inset-0 h-full w-full">
-                  <line x1="300" y1="40" x2="300" y2="720" stroke="#d1d5db" strokeDasharray="6 6" strokeWidth="2" />
-                  {nodes.slice(0, -1).map((node, idx) => (
-                    <motion.path
-                      key={`${node.id}-path`}
-                      className={current > idx ? 'flow-dash' : ''}
-                      d={pathFor(idx)}
-                      fill="none"
-                      stroke="#2563EB"
-                      strokeWidth="2.2"
-                      strokeDasharray="8 6"
-                      initial={{ pathLength: 0, opacity: 0.25 }}
-                      animate={{
-                        pathLength: current > idx ? 1 : 0,
-                        opacity: current > idx ? 1 : 0.3,
-                        strokeDashoffset: current > idx ? [14, 0] : 14,
-                      }}
-                      transition={{ duration: 0.65, ease: 'easeOut' }}
+              <div
+                ref={scrollerRef}
+                className="relative h-[680px] w-full overflow-y-auto rounded-xl bg-gradient-to-b from-blue-50 to-white"
+              >
+                <div className="relative w-full" style={{ height: totalHeight }}>
+                  <svg viewBox={`0 0 600 ${totalHeight}`} className="absolute inset-0 h-full w-full">
+                    <line
+                      x1="300"
+                      y1={60}
+                      x2="300"
+                      y2={totalHeight - 60}
+                      stroke="#d1d5db"
+                      strokeDasharray="6 6"
+                      strokeWidth="2"
                     />
-                  ))}
-                </svg>
+                    {nodes.slice(0, -1).map((node, idx) => (
+                      <motion.path
+                        key={`${node.id}-path`}
+                        className={current > idx ? 'flow-dash' : ''}
+                        d={pathFor(idx)}
+                        fill="none"
+                        stroke="#2563EB"
+                        strokeWidth="2.2"
+                        strokeDasharray="8 6"
+                        initial={{ pathLength: 0, opacity: 0.25 }}
+                        animate={{
+                          pathLength: current > idx ? 1 : 0,
+                          opacity: current > idx ? 1 : 0.3,
+                          strokeDashoffset: current > idx ? [14, 0] : 14,
+                        }}
+                        transition={{ duration: 0.65, ease: 'easeOut' }}
+                      />
+                    ))}
+                  </svg>
 
-                {nodes.map((node, idx) => {
-                  const Icon = iconMap[node.id] ?? Bot
-                  const p = nodePositions[idx]
-                  const isActive = idx === current
-                  const isDone = idx < current
-                  return (
-                    <motion.div
-                      key={node.id}
-                      className="absolute"
-                      style={{ left: p.x, top: p.y, transform: 'translate(-50%, -50%)' }}
-                      initial={{ opacity: 0, y: 8 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                    >
-                      <div
-                        className={`min-w-[188px] rounded-xl border bg-white px-3 py-2 shadow-sm ${
-                          isActive ? 'border-blue-600 ring-2 ring-blue-100' : 'border-gray-200'
-                        }`}
+                  {nodes.map((node, idx) => {
+                    const Icon = iconMap[node.id] ?? Bot
+                    const p = nodePositions[idx]
+                    const isActive = idx === current
+                    const isDone = idx < current
+                    return (
+                      <motion.div
+                        key={node.id}
+                        className="absolute"
+                        style={{ left: p.x, top: p.y, transform: 'translate(-50%, -50%)' }}
+                        initial={{ opacity: 0, y: 8 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
                       >
-                        <div className="flex items-start gap-2">
-                          <span className={`mt-0.5 inline-flex rounded-md p-1 ${isActive ? 'bg-blue-100 text-blue-600' : 'bg-pink-50 text-pink-500'}`}>
-                            <Icon size={14} />
-                          </span>
-                          <div className="min-w-0">
-                            <p className="text-[12px] font-semibold leading-tight text-gray-800">{node.title}</p>
-                            <p className="mt-0.5 text-[10px] text-gray-400">{node.tools}</p>
+                        <div
+                          className={`relative min-w-[208px] rounded-2xl border bg-white px-4 py-3 shadow-sm ${
+                            isActive ? 'border-blue-600 ring-2 ring-blue-100' : 'border-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-start gap-2">
+                            <span
+                              className={`mt-0.5 inline-flex rounded-lg p-2 ${
+                                isActive ? 'bg-blue-100 text-blue-600' : 'bg-pink-50 text-pink-500'
+                              }`}
+                            >
+                              <Icon size={16} />
+                            </span>
+                            <div className="min-w-0">
+                              <p className="text-[13px] font-semibold leading-tight text-gray-800">{node.title}</p>
+                              <p className="mt-0.5 text-[10px] text-gray-400">{node.tools}</p>
+                            </div>
                           </div>
-                          {isDone ? <Check size={12} className="text-pink-500" /> : null}
+                          {isDone ? (
+                            <span className="absolute right-3 top-3 inline-flex items-center justify-center rounded-full bg-pink-50 p-1 text-pink-500">
+                              <Check size={14} />
+                            </span>
+                          ) : null}
                         </div>
-                      </div>
-                    </motion.div>
-                  )
-                })}
+                      </motion.div>
+                    )
+                  })}
 
-                <motion.div
-                  className="absolute h-4 w-4 rounded-full bg-blue-600 shadow-lg"
-                  style={{
-                    left: nodePositions[current]?.x ?? 300,
-                    top: nodePositions[current]?.y ?? 80,
-                    transform: 'translate(-50%, -50%)',
-                  }}
-                  animate={{
-                    left: nodePositions[current]?.x ?? 300,
-                    top: nodePositions[current]?.y ?? 80,
-                  }}
-                  transition={{ duration: 0.5, ease: 'easeInOut' }}
-                />
+                  <motion.div
+                    className="absolute h-4 w-4 rounded-full bg-blue-600 shadow-lg"
+                    style={{
+                      left: nodePositions[current]?.x ?? 300,
+                      top: nodePositions[current]?.y ?? topPad,
+                      transform: 'translate(-50%, -50%)',
+                    }}
+                    animate={{
+                      left: nodePositions[current]?.x ?? 300,
+                      top: nodePositions[current]?.y ?? topPad,
+                    }}
+                    transition={{ duration: 0.5, ease: 'easeInOut' }}
+                  />
+                </div>
               </div>
             </div>
           </div>
