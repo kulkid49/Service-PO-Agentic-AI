@@ -19,35 +19,23 @@ export default function App() {
   const [activeSection, setActiveSection] = useState('prerequisites')
 
   useEffect(() => {
-    let rafId: number | null = null
-
-    const onScroll = () => {
-      if (rafId != null) return
-      rafId = window.requestAnimationFrame(() => {
-        rafId = null
-        const checkpoint = window.scrollY + window.innerHeight * 0.45
-        for (const id of sections) {
-          const el = document.getElementById(id)
-          if (!el) continue
-          const rect = el.getBoundingClientRect()
-          const top = rect.top + window.scrollY
-          const bottom = rect.bottom + window.scrollY
-          if (checkpoint >= top && checkpoint <= bottom) {
-            setActiveSection(id)
-            break
-          }
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+        if (visible?.target?.id) {
+          setActiveSection(visible.target.id)
         }
-      })
-    }
+      },
+      { threshold: [0.35, 0.6, 0.8], rootMargin: '-64px 0px -20% 0px' },
+    )
 
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
-      if (rafId != null) window.cancelAnimationFrame(rafId)
-    }
+    sections.forEach((id) => {
+      const el = document.getElementById(id)
+      if (el) obs.observe(el)
+    })
+    return () => obs.disconnect()
   }, [sections])
 
   const navLinks = [
@@ -71,7 +59,6 @@ export default function App() {
                   activeSection === link.id ? 'text-blue-600' : ''
                 }`}
                 href={`#${link.id}`}
-                onClick={() => setActiveSection(link.id)}
               >
                 {link.label}
                 {activeSection === link.id ? (
