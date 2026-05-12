@@ -155,19 +155,6 @@ export default function FlowchartSection() {
                     )
                   })}
 
-                  <motion.div
-                    className="absolute h-4 w-4 rounded-full bg-blue-600 shadow-lg"
-                    style={{
-                      left: nodePositions[current]?.x ?? 300,
-                      top: nodePositions[current]?.y ?? topPad,
-                      transform: 'translate(-50%, -50%)',
-                    }}
-                    animate={{
-                      left: nodePositions[current]?.x ?? 300,
-                      top: nodePositions[current]?.y ?? topPad,
-                    }}
-                    transition={{ duration: 0.5, ease: 'easeInOut' }}
-                  />
                 </div>
               </div>
             </div>
