@@ -180,36 +180,31 @@
       "id": 1,
       "title": "Email Receipt & Initial Ingestion",
       "shortLabel": "Email Ingestion",
-      "agent": "Orchestrator Agent",
-      "exceptionCode": "MAIL_PARSE_ERROR"
+      "agent": "Orchestrator Agent"
     },
     {
       "id": 2,
       "title": "Extraction (Service PO Extractor Agent)",
       "shortLabel": "Extraction",
-      "agent": "Service PO Extractor Agent",
-      "exceptionCode": "LOW_CONFIDENCE"
+      "agent": "Service PO Extractor Agent"
     },
     {
       "id": 3,
       "title": "Compliance Checks",
       "shortLabel": "Compliance",
-      "agent": "Translator + Compliance Checker + Master Data Agent",
-      "exceptionCode": "VENDOR_BLOCKED"
+      "agent": "Translator + Compliance Checker + Master Data Agent"
     },
     {
       "id": 4,
       "title": "Validation (Three-Way Match)",
       "shortLabel": "Validation",
-      "agent": "Service Validation Agent",
-      "exceptionCode": "QTY_MISMATCH"
+      "agent": "Service Validation Agent"
     },
     {
       "id": 5,
       "title": "Posting",
       "shortLabel": "Posting",
-      "agent": "Service Posting Agent",
-      "exceptionCode": "POSTING_FAILED"
+      "agent": "Service Posting Agent"
     }
   ],
   "flowNodes": [
@@ -261,11 +256,5 @@
       "description": "Posted invoice document and audit update",
       "tools": "Ledger + audit log"
     }
-  ],
-  "exceptionCodes": [
-    "LOW_CONFIDENCE",
-    "VENDOR_BLOCKED",
-    "DUPLICATE_INVOICE",
-    "QTY_MISMATCH"
   ]
 }

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  AlertTriangle,
   Archive,
   Check,
   CheckCircle2,
@@ -19,65 +18,11 @@ import data from '../data/presentationData.json'
 
 type Step = (typeof data.stepDemo)[number]
 
-function ExceptionModal({
-  open,
-  onClose,
-  code,
-}: {
-  open: boolean
-  onClose: () => void
-  code: string
-}) {
-  return (
-    <AnimatePresence>
-      {open ? (
-        <motion.div
-          className="fixed inset-0 z-50 grid place-items-center bg-gray-900/35 p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-        >
-          <motion.div
-            initial={{ scale: 0.95, y: 12, opacity: 0 }}
-            animate={{ scale: 1, y: 0, opacity: 1 }}
-            exit={{ scale: 0.95, y: 12, opacity: 0 }}
-            className="w-full max-w-md rounded-2xl border border-pink-200 bg-white p-6"
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Exception Agent details"
-          >
-            <div className="flex items-center gap-3 text-pink-600">
-              <AlertTriangle size={20} />
-              <h3 className="text-lg font-semibold">Exception Agent</h3>
-            </div>
-            <p className="mt-3 text-sm text-gray-600">
-              Reason code: <span className="font-semibold text-pink-600">{code}</span>
-            </p>
-            <p className="mt-2 text-sm text-gray-600">
-              Manual intervention is required. A ServiceNow/ticketing case is opened and the invoice is reprocessed after resolution.
-            </p>
-            <button
-              type="button"
-              onClick={onClose}
-              className="mt-5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white"
-            >
-              Close
-            </button>
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
-  )
-}
-
 export default function StepDemoSection() {
   const steps = data.stepDemo as Step[]
   const [active, setActive] = useState(0)
   const [autoPlay, setAutoPlay] = useState(false)
   const [mode, setMode] = useState<'sap' | 'bc'>('sap')
-  const [modalOpen, setModalOpen] = useState(false)
 
   useEffect(() => {
     if (!autoPlay) return undefined
@@ -249,14 +194,6 @@ export default function StepDemoSection() {
           >
             {autoPlay ? 'Stop Auto-Play' : 'Auto-Play (4s)'}
           </button>
-          <button
-            type="button"
-            onClick={() => setModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg border border-pink-200 bg-pink-50 px-4 py-2 text-sm text-pink-600"
-          >
-            <AlertTriangle size={16} />
-            Exception Agent
-          </button>
         </div>
 
         <div className="mt-8 grid gap-2 md:grid-cols-5">
@@ -287,8 +224,6 @@ export default function StepDemoSection() {
           })}
         </div>
       </div>
-
-      <ExceptionModal open={modalOpen} onClose={() => setModalOpen(false)} code={current.exceptionCode} />
     </section>
   )
 }

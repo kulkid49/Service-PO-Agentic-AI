@@ -20,7 +20,6 @@
       "Document Processing: determine file type, apply OCR + AI Document Intelligence.",
       "Key data extracted: Vendor Name/Code, Invoice Number & Date, PO Number, SES Number, line items, tax details, etc.",
       "Service-specific extraction: identifies Item Category ‘D’ references or Resource lines.",
-      "Quality Check: confidence scoring; if <75% → route to Exception Agent.",
       "Output: structured JSON payload with extracted data."
     ]
   },
@@ -30,8 +29,7 @@
     "icon": "ShieldCheck",
     "descriptionItems": [
       "Translator Agent normalizes data: language translation, currency & UoM conversion, tax code standardisation.",
-      "Compliance Checker performs layered validations: Vendor validation (via Master Data Agent), regulatory/policy compliance, document completeness, duplicate check.",
-      "If any failure → route to Exception Agent with reason code (e.g., VENDOR_BLOCKED, TAX_ID_MISMATCH, DUPLICATE_INVOICE)."
+      "Compliance Checker performs layered validations: Vendor validation (via Master Data Agent), regulatory/policy compliance, document completeness, duplicate check."
     ]
   },
   {
@@ -42,8 +40,7 @@
       "Orchestrator identifies target ERP (SAP or BC) based on Company Code/PO prefix.",
       "For SAP: retrieves PO (ME23N), verifies Item Cat D, checks SES status (ML81N) must be Accepted. Compares quantities/amounts between Invoice, SES and PO.",
       "For D365 BC: retrieves PO, checks Posted Purchase Receipt. Compares Qty to Invoice vs Qty Received, Unit Cost and Line Amounts.",
-      "Tolerance check: applies configured tolerances (OMR6 for SAP, Purchases Setup for BC).",
-      "If mismatch → route to Exception Agent with reason (e.g., SES_NOT_ACCEPTED, QTY_MISMATCH)."
+      "Tolerance check: applies configured tolerances (OMR6 for SAP, Purchases Setup for BC)."
     ]
   },
   {
@@ -57,16 +54,6 @@
       "BC: Create Purchase Invoice via API, posts document, updates Vendor Ledger Entry.",
       "Post-posting: vendor open item created, confirmation email, audit log update, triggers payment proposal run.",
       "Orchestrator marks Global Service Invoice ID as ‘Completed’."
-    ]
-  },
-  {
-    "id": 99,
-    "title": "Exception Agent",
-    "icon": "AlertTriangle",
-    "descriptionItems": [
-      "Exception Agent receives the payload with reason code.",
-      "Manual intervention required. Case created in ServiceNow / ticketing system.",
-      "After resolution, invoice can be reprocessed."
     ]
   }
 ]
