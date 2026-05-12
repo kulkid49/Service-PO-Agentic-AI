@@ -74,27 +74,6 @@ export default function FlowchartSection() {
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[3fr_2fr]">
           <div className="min-w-0">
-            <div className="mb-4 flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setCurrent((v) => Math.max(0, v - 1))}
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
-                aria-label="Previous step"
-              >
-                <ChevronLeft size={16} />
-                Previous Step
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrent((v) => Math.min(nodes.length - 1, v + 1))}
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
-                aria-label="Next step"
-              >
-                Next Step
-                <ChevronRight size={16} />
-              </button>
-            </div>
-
             <div className="relative rounded-2xl border border-gray-200 bg-white p-4">
               <div
                 ref={scrollerRef}
@@ -217,6 +196,29 @@ export default function FlowchartSection() {
                 </div>
               </motion.article>
             </AnimatePresence>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl border border-gray-200 bg-white/90 p-3 shadow-sm backdrop-blur">
+              <button
+                type="button"
+                onClick={() => setCurrent((v) => Math.max(0, v - 1))}
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:opacity-50"
+                aria-label="Previous step"
+                disabled={current === 0}
+              >
+                <ChevronLeft size={16} />
+                Previous Step
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrent((v) => Math.min(nodes.length - 1, v + 1))}
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50"
+                aria-label="Next step"
+                disabled={current === nodes.length - 1}
+              >
+                Next Step
+                <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
