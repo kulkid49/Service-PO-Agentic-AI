@@ -30,10 +30,7 @@ const iconMap: Record<string, ComponentType<{ size?: number; className?: string 
 
 export default function FlowchartSection() {
   const nodes = data.flowNodes
-  const cards = data.flowExplanationCards as Record<
-    string,
-    { label: string; title: string; bullets: string[] }
-  >
+  const cards = data.flowExplanationCards as Array<{ step: number; title: string; body: string }>
   const [current, setCurrent] = useState(0)
   const scrollerRef = useRef<HTMLDivElement | null>(null)
   const pathRefs = useRef<Array<SVGPathElement | null>>([])
@@ -106,7 +103,11 @@ export default function FlowchartSection() {
   }, [current, nodes.length])
 
   const activeNode = nodes[current]
-  const activeCard = cards[activeNode.id] ?? { label: activeNode.title, title: activeNode.title, bullets: [] }
+  const activeCard = cards[current] ?? { step: current + 1, title: activeNode.title, body: '' }
+  const bodyLines = (activeCard.body || '')
+    .split('<br/>')
+    .map((s) => s.trim())
+    .filter(Boolean)
 
   const pathFor = (idx: number) => {
     const p1 = nodePositions[idx]
@@ -211,13 +212,13 @@ export default function FlowchartSection() {
                 className="rounded-2xl border border-blue-100 bg-gradient-to-b from-blue-50 to-white p-6"
               >
                 <p className="text-sm font-semibold text-pink-500">
-                  Step {current + 1} <span className="text-gray-400">•</span> {activeCard.label}
+                  Step {activeCard.step} <span className="text-gray-400">•</span> {activeNode.title}
                 </p>
                 <h3 className="mt-1 text-2xl font-bold text-blue-600">{activeCard.title}</h3>
                 <div className="mt-4 space-y-2">
-                  {activeCard.bullets.map((line, idx) => (
+                  {bodyLines.map((line, idx) => (
                     <motion.p
-                      key={line}
+                      key={`${activeCard.step}-${idx}-${line}`}
                       initial={{ opacity: 0, x: 8 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.1 }}

@@ -406,116 +406,46 @@
       "tools": "Ledger + audit log"
     }
   ],
-  "flowExplanationCards": {
-    "trigger": {
-      "label": "Trigger – Vendor Email",
-      "title": "Incoming Service Invoice Email",
-      "bullets": [
-        "A vendor sends an email containing the service invoice (PDF, scanned image, or XML) to a dedicated, monitored mailbox.",
-        "The Orchestrator Agent continuously scans this inbox via Microsoft Graph API / Outlook Connector / IMAP.",
-        "On detection of a new email with attachment(s), the agent captures:",
-        "Email Metadata: From (vendor email address), Subject (typical invoice subject), Date.",
-        "Attachments: All invoice files and any supporting documents (e.g., delivery notes, SES approval).",
-        "A unique Global Service Invoice ID is generated for end-to-end traceability, e.g.: SERV-INV-20260511-784512.",
-        "The original email and attachments are securely archived, and the payload is handed off to the Extractor Agent."
-      ]
+  "flowExplanationCards": [
+    {
+      "step": 1,
+      "title": "Intelligent Invoice Intake",
+      "body": "Vendor emails the service invoice (PDF / scanned image / XML) to a dedicated mailbox.<br/>Orchestrator Agent monitors via Microsoft Graph API / Outlook Connector / IMAP and captures From, Subject, Date, and attachments.<br/>Generates Global Service Invoice ID (SERV-INV-20260511-784512), archives securely, and hands off to the Service PO Extractor Agent."
     },
-    "orchestrator": {
-      "label": "Orchestrator Agent",
-      "title": "Central Process Coordinator",
-      "bullets": [
-        "Acts as the brain and traffic controller of the entire invoice processing pipeline.",
-        "Key Responsibilities:",
-        "Assigns the Global Service Invoice ID.",
-        "Logs all events to the central audit trail.",
-        "Routes the invoice package (email + attachments) to the next agent.",
-        "Identifies the correct target ERP system (SAP S/4HANA or Dynamics 365 BC) based on Company Code / PO prefix.",
-        "Maintains the state of each invoice (Received, In Extraction, Validating, Posting, Completed).",
-        "Provides real-time status updates to the monitoring dashboard.",
-        "Ensures that every handover between agents is asynchronous and reliable, eliminating manual inbox sorting."
-      ]
+    {
+      "step": 2,
+      "title": "Central Orchestration & Routing",
+      "body": "Orchestrator Agent assigns the Global Service Invoice ID and logs events to the central audit trail.<br/>Routes the invoice package asynchronously across agents and maintains state (Received → Extraction → Validating → Posting → Completed).<br/>Selects the target ERP (SAP S/4HANA or Dynamics 365 BC) based on Company Code / PO prefix."
     },
-    "extractor": {
-      "label": "Service PO Extractor Agent",
+    {
+      "step": 3,
       "title": "Intelligent Document Extraction",
-      "bullets": [
-        "Receives the raw email and attachment(s) from the Orchestrator.",
-        "Processing Steps:",
-        "Detects file type (PDF, image, XML).",
-        "Applies OCR (Optical Character Recognition) combined with AI Document Intelligence (e.g., Azure Form Recognizer / NA10) to read the invoice.",
-        "Handles multi-page invoices, complex line-item tables, and handwritten or scanned content.",
-        "Extracts Critical Data Fields:",
-        "Header: Vendor Name/Code, Invoice Number, Invoice Date, Purchase Order Number, Service Entry Sheet number (if present), Currency, Total Amount.",
-        "Line Items: Service Description, Service Number, Quantity, Unit of Measure, Unit Rate, Line Amount, Account Assignment hints (Cost Center, WBS, Project).",
-        "Tax & Banking: Tax details, Payment Due Date, Bank account information.",
-        "Quality Control:",
-        "A confidence score (0–100%) is assigned to each extracted field and an overall document score.",
-        "In the ideal flow, all fields exceed the pre-set threshold (e.g., 85%), and the data is packaged as a structured JSON payload.",
-        "The final payload, together with the original document link, is passed to the Translator Agent."
-      ]
+      "body": "Service PO Extractor Agent ingests email + attachments and detects PDF / image / XML.<br/>Runs OCR + AI Document Intelligence to extract header (Vendor, Invoice No., PO, SES, Currency, Total) and line items (Service, Qty, UoM, Rate, Amount, Cost Center hints) plus tax/banking details.<br/>Applies confidence scoring per field (ideal flow >85%) and outputs a structured JSON payload for the Service PO Translator Agent."
     },
-    "translator": {
-      "label": "Service PO Translator Agent",
-      "title": "Data Normalisation & Standardisation",
-      "bullets": [
-        "The Translator Agent ensures that extracted data matches the ERP system’s language and formats.",
-        "Normalisation Actions:",
-        "Language Translation: Converts invoice text to the required language (if multi-lingual extraction occurred).",
-        "Currency & UoM Conversion: Aligns currencies and units of measure with the company code’s master data (e.g., convert foreign currency to local currency using the latest exchange rate; map “hour” to “HRS”).",
-        "Tax Code Standardisation: Maps textual tax descriptions to system tax codes. For example, “VAT 12%” becomes the SAP tax code UZ_VAT12, or the corresponding D365 BC tax code.",
-        "Field Formatting: Dates are converted to the ERP-expected format (YYYY-MM-DD), vendor codes are matched to the master record, and PO numbers are normalised (removing spaces/special characters).",
-        "The normalised, clean data payload is then ready for compliance verification."
-      ]
+    {
+      "step": 4,
+      "title": "ERP-Ready Data Normalisation",
+      "body": "Service PO Translator Agent standardises the payload for posting.<br/>Translates language when needed, converts currency/UoM, and normalises formats (dates, vendor codes, PO numbers).<br/>Maps tax text to system codes (e.g., “VAT 12%” → UZ_VAT12) and forwards to compliance."
     },
-    "compliance": {
-      "label": "Compliance Checker Agent + Master Data Agent",
-      "title": "Multi-Layered Business & Master Data Validation",
-      "bullets": [
-        "The Service Master Data Agent fetches live master records from SAP / D365 BC for validation.",
-        "The Compliance Checker Agent runs layered checks with clear pass/fail outcomes:",
-        "Vendor Validation: Vendor exists and is active in the relevant Company Code; vendor is not blocked for posting/payment; bank account details match the master record (fraud prevention); Tax ID / GSTIN / PINFL matches the vendor master.",
-        "Regulatory & Policy Compliance: Applies country-specific rules (e.g., Uzbekistan VAT, India GST); checks for any mandatory withholding tax applicability on services.",
-        "Document Completeness: PO number is present and valid in the system; service lines are properly identified (Item Category “D” in SAP or Resource lines in BC); relevant supporting documents are referenced.",
-        "Duplicate Invoice Check: Searches across both SAP and BC using Vendor + Invoice No. + Date + Amount; prevents accidental double-posting.",
-        "Successful Outcome: All checks pass → the invoice moves forward to the Validation Agent.",
-        "In this clean demo, no business exceptions occur, ensuring a straight-through processing path."
-      ]
+    {
+      "step": 5,
+      "title": "Compliance & Master Data Assurance",
+      "body": "Compliance Checker Agent + Master Data Agent validate vendor and policy controls before posting.<br/>Confirms vendor active/not blocked, bank & Tax ID match, PO valid, and service lines identified correctly.<br/>Runs country tax/withholding checks and duplicate detection across SAP and Dynamics 365 BC.<br/>All checks pass → proceed to three-way match."
     },
-    "validation": {
-      "label": "Service Validation Agent",
-      "title": "Three-Way Match & Tolerance Enforcement",
-      "bullets": [
-        "The Validation Agent performs the three-way match, the core control for service procurement.",
-        "For SAP Environments: Retrieves the Purchase Order (ME23N) and verifies Item Category = D (Services); checks the Service Entry Sheet (SES) status in ML81N – must be “Accepted”; compares Invoice lines vs. Accepted SES quantities/amounts vs. PO lines.",
-        "For Dynamics 365 Business Central: Retrieves the Purchase Order and ensures a Posted Purchase Receipt exists for the resource/service lines; compares Invoice Qty/Cost vs. Received Qty/Cost on the receipt.",
-        "Tolerance Check: Applies configured tolerances for price, quantity, and amount (SAP OMR6 / LIV; BC Purchases & Payables Setup).",
-        "Exact matches or small variances within tolerance → auto-approved.",
-        "Validation Output: A verified, tolerance-compliant invoice ready for final posting."
-      ]
+    {
+      "step": 6,
+      "title": "Three-Way Match & Tolerance Control",
+      "body": "Service Validation Agent executes the service three-way match with ERP-specific logic.<br/>SAP: verify Item Category D, confirm ML81N SES = Accepted, match Invoice vs SES vs PO.<br/>Dynamics 365 BC: confirm Posted Purchase Receipt, match Invoice Qty/Cost vs Received Qty/Cost.<br/>Apply tolerances (SAP OMR6 / BC Purchases Setup) and auto-approve within threshold."
     },
-    "posting": {
-      "label": "Service Posting Agent",
-      "title": "Final Enrichment & System Posting",
-      "bullets": [
-        "The Posting Agent receives the approved payload and performs the final ERP booking.",
-        "Pre-Posting Enrichment: Pulls the latest account assignment data (Cost Center, WBS Element, Internal Order) from the master records; applies the correct tax codes and G/L accounts based on automatic account determination (OBYC in SAP, Posting Groups in BC).",
-        "System-Specific Posting Actions:",
-        "SAP S/4HANA: Utilises BAPI_INCOMINGINVOICE_CREATE (or an IDoc INVOIC01) to simulate the MIRO transaction in the background; references the Purchase Order Number and Accepted Service Entry Sheet; posts the invoice, generating an Invoice Receipt (IR) in PO history; produces an SAP Invoice Document Number (e.g., 5100000123).",
-        "Dynamics 365 BC: Creates a Purchase Invoice via API / Web Service; uses Get Receipt Lines (if receipt-based matching is enabled) to fetch the goods receipt; posts the Purchase Invoice, updating PO status and creating a Vendor Ledger Entry.",
-        "Post-Posting Actions: Creates an open vendor item in Accounts Payable; triggers a Payment Proposal Run automatically (F110 in SAP / Payment Journal in BC) if the payment due date is met; sends a confirmation email to the AP team and the vendor (optional)."
-      ]
+    {
+      "step": 7,
+      "title": "Automated ERP Posting",
+      "body": "Service Posting Agent enriches with latest account assignments (Cost Center, WBS), tax codes, and G/L determination.<br/>SAP: post via BAPI_INCOMINGINVOICE_CREATE (MIRO background), reference PO + SES, generate SAP Invoice Document No.<br/>Dynamics 365 BC: create/post Purchase Invoice via API, use Get Receipt Lines, create Vendor Ledger Entry.<br/>Trigger F110 / Payment Journal (when due) and send confirmation notifications."
     },
-    "completion": {
-      "label": "Completion – Invoice Posted",
-      "title": "Finalisation & Audit Trail Update",
-      "bullets": [
-        "The Global Service Invoice ID is marked as “Completed” in the audit log.",
-        "Key Outcomes:",
-        "The posted document number (SAP Invoice Doc No. or BC Posted Invoice No.) is linked to the original Global ID for full traceability.",
-        "The central dashboard updates the invoice status and triggers any required alerts.",
-        "All actions are recorded in the Agentic AI Operations Audit Log, ensuring a transparent, compliant process.",
-        "The end-to-end journey – from vendor email to posted invoice – is now fully automated, fully visible, and free of manual intervention."
-      ]
+    {
+      "step": 8,
+      "title": "Audit-Ready Completion",
+      "body": "Orchestrator marks the Global Service Invoice ID as Completed and links it to the posted document number.<br/>Dashboard updates instantly and every action is recorded in the Agentic AI Operations Audit Log.<br/>Outcome: fully automated, traceable, and compliant service invoice posting."
     }
-  }
+  ]
 }
